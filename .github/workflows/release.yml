@@ -1,0 +1,57 @@
+name: Release
+
+# Builds the desktop app on tag push (e.g. `v1.2.0`) and attaches the
+# installers to a GitHub Release. Builds are unsigned, so macOS users will
+# need to right-click and choose Open (or run `xattr -cr`) the first time,
+# and Windows SmartScreen may warn once. Add code signing later if that
+# becomes a problem.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact-glob: release/*.dmg
+          - os: windows-latest
+            artifact-glob: release/*.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Build and package
+        run: npm run dist
+        env:
+          # No signing certificate is configured, so skip the codesign lookup
+          # instead of failing the build trying to find one.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload installer to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact-glob }}
+          fail_on_unmatched_files: true

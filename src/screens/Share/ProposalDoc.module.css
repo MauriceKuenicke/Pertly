@@ -1,0 +1,286 @@
+.doc {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.docHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.preparer {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.validUntil {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.docTitle {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.docByline {
+  margin: -12px 0 0;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.metaGrid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metaLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--text-tertiary);
+}
+
+.metaValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.docParagraph {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.sectionHeading {
+  margin: 0 0 -8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border-default);
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.table td {
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+.table th.tableRight,
+.table td.tableRight {
+  text-align: right;
+}
+
+.tableSubtext {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.tableTotal td {
+  border-bottom: none;
+  border-top: 1px solid var(--border-strong);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.capNote {
+  padding: 12px 16px;
+  background: var(--brand-primary-subtle);
+  color: var(--brand-primary);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.assumptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bulletRow {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.internalBanner {
+  padding: 12px 16px;
+  background: var(--semantic-danger-subtle);
+  color: var(--semantic-danger);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.assumptionsUsed {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.assumptionsUsed > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.buildRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.buildRowSub {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-default);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.buildRowTotal {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-strong);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.valueStory {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.valueStoryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.valueStoryAmount {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.valueStoryNote {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+
+.tiersRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.tierCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.tierColHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.tierColName {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tierColBadge {
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.tierColPrice {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.tierColDuration {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+
+.tierColDesc {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}

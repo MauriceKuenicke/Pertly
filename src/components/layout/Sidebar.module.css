@@ -1,0 +1,118 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 240px;
+  height: 100%;
+  flex-shrink: 0;
+  padding: 24px 20px;
+  background: var(--bg-inverse);
+  overflow-y: auto;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.logoMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.logoText {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-inverse);
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.cta:hover {
+  background: var(--brand-primary-hover);
+}
+
+.ctaPlus {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sectionLabel {
+  padding: 0 8px;
+  margin-bottom: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  color: var(--text-inverse-faint);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-inverse-muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.navItem:hover {
+  background: var(--bg-inverse-raised);
+}
+
+.navItemActive {
+  background: var(--bg-inverse-raised);
+  color: var(--text-inverse);
+  font-weight: 600;
+}
+
+.iconBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: #3d1e22;
+  color: var(--text-inverse);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.navItemActive .iconBadge {
+  background: var(--brand-primary);
+}
+
+.spacer {
+  flex: 1;
+}

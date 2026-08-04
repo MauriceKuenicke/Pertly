@@ -1,0 +1,64 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.optimistic {
+  background: var(--estimate-optimistic-subtle);
+  color: var(--estimate-optimistic);
+}
+.optimistic .dot {
+  background: var(--estimate-optimistic);
+}
+
+.likely {
+  background: var(--estimate-likely-subtle);
+  color: var(--estimate-likely);
+}
+.likely .dot {
+  background: var(--estimate-likely);
+}
+
+.pessimistic {
+  background: var(--estimate-pessimistic-subtle);
+  color: var(--estimate-pessimistic);
+}
+.pessimistic .dot {
+  background: var(--estimate-pessimistic);
+}
+
+.neutral {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+.neutral .dot {
+  background: var(--text-tertiary);
+}
+
+.danger {
+  background: var(--semantic-danger-subtle);
+  color: var(--semantic-danger);
+}
+.danger .dot {
+  background: var(--semantic-danger);
+}
+
+.success {
+  background: var(--semantic-success-subtle);
+  color: var(--semantic-success);
+}
+.success .dot {
+  background: var(--semantic-success);
+}

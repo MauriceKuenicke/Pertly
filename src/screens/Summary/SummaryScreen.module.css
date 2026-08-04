@@ -1,0 +1,286 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1120px;
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.pageSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.kpiLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--text-tertiary);
+}
+
+.kpiValue {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.kpiUnit {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.kpiFoot {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.bottomRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.buildRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.buildRowSub {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-default);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-default);
+}
+
+.buildRowTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.buildRowTotal span:last-child {
+  font-size: 19px;
+}
+
+.govRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--semantic-success-subtle);
+  color: var(--semantic-success);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.govTitle {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.govBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.stepText {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.tiersGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.tierCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.tierCardRecommended {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary-subtle);
+}
+
+.tierCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.tierCardName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tierCardBadge {
+  flex-shrink: 0;
+  padding: 3px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.tierCardPrice {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.tierCardDuration {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+
+.tierCardDesc {
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.splitPresetRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.splitPreset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+
+.splitPresetActive {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary-subtle);
+}
+
+.splitPresetName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.splitPresetShape {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.splitPresetDesc {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
+.milestoneRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.milestone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.milestoneLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--text-tertiary);
+}
+
+.milestoneAmount {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.milestonePct {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}

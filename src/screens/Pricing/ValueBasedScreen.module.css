@@ -1,0 +1,364 @@
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  max-width: 1200px;
+}
+
+.formColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.pageSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.hintCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.hintTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hintList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.driverGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.driverField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.driverLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--text-tertiary);
+}
+
+.driverInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.affix {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.driverInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.driverHint {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+
+.problemTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-default);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.problemTotalValue {
+  font-size: 18px;
+}
+
+.scenarioRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.scenario {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.scenarioLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--text-tertiary);
+}
+
+.scenarioValue {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.scenarioPct {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.tiersRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.tierCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.tierRecommended {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary-subtle);
+}
+
+.tierHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.tierName {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tierBadge {
+  flex-shrink: 0;
+  padding: 3px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.tierDurationRow {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.tierDurationInput {
+  width: 2.4ch;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  -moz-appearance: textfield;
+}
+
+.tierDurationInput::-webkit-outer-spin-button,
+.tierDurationInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* The min input sits right against the separator on its right, so it's
+   right-aligned; the max input sits right against the separator on its
+   left, so it's left-aligned. Keeps "3–4" tight regardless of digit count
+   instead of leaving slack space next to the dash. */
+.tierDurationInputMin {
+  text-align: right;
+}
+
+.tierDurationInputMax {
+  text-align: left;
+}
+
+.tierDurationSep {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.tierDurationUnit {
+  margin-left: 4px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.tierPriceWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.tierPrice {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tierDescLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--text-tertiary);
+}
+
+.tierDesc {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-secondary);
+  resize: none;
+}
+
+.setRecommended {
+  padding: 6px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.rightPanel {
+  width: 340px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+}
+
+.feeRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-default);
+}
+
+.feeTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.feeTotalRow span:last-child {
+  font-size: 20px;
+}
+
+.roiBadge {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.roiBadgeGood {
+  background: var(--estimate-optimistic-subtle);
+  color: var(--estimate-optimistic);
+}
+
+.roiBadgeWarn {
+  background: var(--estimate-pessimistic-subtle);
+  color: var(--estimate-pessimistic);
+}
+
+.roiTarget {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.stepText {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
