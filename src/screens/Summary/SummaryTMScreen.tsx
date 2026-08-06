@@ -1,6 +1,14 @@
 import { WizardLayout, FooterBar } from "../../components/layout";
 import { Button, Card } from "../../components/ui";
-import { calcPaymentMilestones, calcTimeMaterials, sumExpenses } from "../../lib/calc";
+import {
+  calcPaymentMilestones,
+  calcRoleBreakdown,
+  calcTimeMaterials,
+  matchingPaymentSplitPresetId,
+  sumExpenses,
+  TM_PAYMENT_SPLIT_PRESETS,
+  type PaymentSplitPreset,
+} from "../../lib/calc";
 import { formatDays, formatMoney } from "../../lib/currency";
 import type { WizardScreenProps } from "../wizardProps";
 import { breadcrumbLabelFor, windowTitleFor } from "../wizardProps";
@@ -25,6 +33,7 @@ const GOVERNANCE = [
 
 export function SummaryTMScreen({
   estimate,
+  onChange,
   onGoToList,
   onGoToSettings,
   onNewEstimate,
@@ -33,11 +42,24 @@ export function SummaryTMScreen({
   onBack,
   onNext,
 }: WizardScreenProps) {
-  const totals = calcTimeMaterials(estimate.timeMaterials.workPackages, estimate.rateEffort, estimate.overheadRisk);
+  const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
+  const roleBreakdown = calcRoleBreakdown(estimate.timeMaterials, estimate.rateEffort);
   const currency = estimate.projectDetails.currency;
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = totals.recommendedBudget + expensesTotal;
-  const milestones = calcPaymentMilestones(grandTotal);
+  const paymentSplit = estimate.timeMaterials.paymentSplit;
+  const milestones = calcPaymentMilestones(grandTotal, paymentSplit);
+  const activeSplitPresetId = matchingPaymentSplitPresetId(paymentSplit, TM_PAYMENT_SPLIT_PRESETS);
+
+  const selectPaymentSplitPreset = (preset: PaymentSplitPreset) => {
+    onChange((e) => ({
+      ...e,
+      timeMaterials: {
+        ...e.timeMaterials,
+        paymentSplit: preset.entries.map((entry) => ({ ...entry })),
+      },
+    }));
+  };
 
   return (
     <WizardLayout
@@ -150,10 +172,37 @@ export function SummaryTMScreen({
           </Card>
         </div>
 
-        <Card
-          title="Suggested payment schedule"
-          description="A defensible default split for the total quoted price. Adjust to fit the engagement."
-        >
+        {roleBreakdown.length > 0 && (
+          <Card title="Team & rate split" description="Where the base delivery cost comes from, by role.">
+            <div className={styles.milestoneRow}>
+              {roleBreakdown.map((row) => (
+                <div className={styles.milestone} key={row.roleId}>
+                  <span className={styles.milestoneLabel}>{(row.roleName || "Untitled role").toUpperCase()}</span>
+                  <span className={styles.milestoneAmount}>{formatMoney(row.cost, currency)}</span>
+                  <span className={styles.milestonePct}>
+                    {formatDays(row.days)} d at {formatMoney(row.dayRate, currency)}/day · {Math.round(row.pctOfCost)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        <Card title="Suggested payment schedule" description="Pick the split that fits how this engagement will run.">
+          <div className={styles.splitPresetRow}>
+            {TM_PAYMENT_SPLIT_PRESETS.map((preset) => (
+              <button
+                type="button"
+                key={preset.id}
+                className={`${styles.splitPreset} ${activeSplitPresetId === preset.id ? styles.splitPresetActive : ""}`}
+                onClick={() => selectPaymentSplitPreset(preset)}
+              >
+                <span className={styles.splitPresetName}>{preset.name}</span>
+                <span className={styles.splitPresetShape}>{preset.entries.map((e) => `${e.pct}%`).join(" / ")}</span>
+                <span className={styles.splitPresetDesc}>{preset.description}</span>
+              </button>
+            ))}
+          </div>
           <div className={styles.milestoneRow}>
             {milestones.map((m) => (
               <div className={styles.milestone} key={m.label}>

@@ -1,5 +1,5 @@
 import type { Estimate } from "../../types/estimate";
-import { calcPaymentMilestones, calcTimeMaterials, sumExpenses } from "../../lib/calc";
+import { calcPaymentMilestones, calcRoleBreakdown, calcTimeMaterials, sumExpenses } from "../../lib/calc";
 import { formatDays, formatMoney } from "../../lib/currency";
 import { formatDate } from "../../lib/date";
 import { ExpensesSection, PaymentScheduleSection } from "./ProposalExtras";
@@ -11,10 +11,17 @@ interface Props {
 
 export function InternalDetailTM({ estimate }: Props) {
   const currency = estimate.projectDetails.currency;
-  const totals = calcTimeMaterials(estimate.timeMaterials.workPackages, estimate.rateEffort, estimate.overheadRisk);
+  const useRoleBasedPricing = estimate.timeMaterials.useRoleBasedPricing;
+  const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
+  const roleBreakdown = calcRoleBreakdown(estimate.timeMaterials, estimate.rateEffort);
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = totals.recommendedBudget + expensesTotal;
-  const milestones = calcPaymentMilestones(grandTotal);
+  const milestones = calcPaymentMilestones(grandTotal, estimate.timeMaterials.paymentSplit);
+
+  const roleNameFor = (roleId: string | undefined) => {
+    const role = estimate.timeMaterials.roles.find((r) => r.id === roleId);
+    return role ? role.name || "Untitled role" : "Unassigned";
+  };
 
   return (
     <div className={styles.doc}>
@@ -31,7 +38,11 @@ export function InternalDetailTM({ estimate }: Props) {
       <div className={styles.assumptionsUsed}>
         <div>
           <span className={styles.metaLabel}>DAY RATE</span>
-          <span className={styles.metaValue}>{formatMoney(estimate.rateEffort.dayRate, currency)}</span>
+          <span className={styles.metaValue}>
+            {useRoleBasedPricing
+              ? `Role-based (${estimate.timeMaterials.roles.length})`
+              : formatMoney(estimate.rateEffort.dayRate, currency)}
+          </span>
         </div>
         <div>
           <span className={styles.metaLabel}>OVERHEAD</span>
@@ -50,7 +61,11 @@ export function InternalDetailTM({ estimate }: Props) {
       <h2 className={styles.sectionHeading}>Cost build-up</h2>
       <div className={styles.buildRow}>
         <span>
-          Base delivery cost ({formatDays(totals.expectedDays)} d × {formatMoney(estimate.rateEffort.dayRate, currency)})
+          Base delivery cost (
+          {useRoleBasedPricing
+            ? `${formatDays(totals.expectedDays)} d across roles`
+            : `${formatDays(totals.expectedDays)} d × ${formatMoney(estimate.rateEffort.dayRate, currency)}`}
+          )
         </span>
         <span>{formatMoney(totals.baseCost, currency)}</span>
       </div>
@@ -87,12 +102,41 @@ export function InternalDetailTM({ estimate }: Props) {
         </>
       )}
 
+      {roleBreakdown.length > 0 && (
+        <>
+          <h2 className={styles.sectionHeading}>Team & rate breakdown</h2>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>ROLE</th>
+                <th className={styles.tableRight}>DAY RATE</th>
+                <th className={styles.tableRight}>DAYS</th>
+                <th className={styles.tableRight}>COST</th>
+                <th className={styles.tableRight}>% OF COST</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roleBreakdown.map((row) => (
+                <tr key={row.roleId}>
+                  <td>{row.roleName || "Untitled role"}</td>
+                  <td className={styles.tableRight}>{formatMoney(row.dayRate, currency)}</td>
+                  <td className={styles.tableRight}>{formatDays(row.days)}</td>
+                  <td className={styles.tableRight}>{formatMoney(row.cost, currency)}</td>
+                  <td className={styles.tableRight}>{Math.round(row.pctOfCost)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+
       <h2 className={styles.sectionHeading}>Detailed work breakdown</h2>
       <table className={styles.table}>
         <thead>
           <tr>
             <th>#</th>
             <th>WORK PACKAGE</th>
+            {useRoleBasedPricing && <th>ROLE</th>}
             <th className={styles.tableRight}>O</th>
             <th className={styles.tableRight}>M</th>
             <th className={styles.tableRight}>P</th>
@@ -106,6 +150,7 @@ export function InternalDetailTM({ estimate }: Props) {
             <tr key={row.id}>
               <td>{i + 1}</td>
               <td>{row.name || "Untitled package"}</td>
+              {useRoleBasedPricing && <td>{roleNameFor(row.roleId)}</td>}
               <td className={styles.tableRight}>{row.optimisticDays}</td>
               <td className={styles.tableRight}>{row.likelyDays}</td>
               <td className={styles.tableRight}>{row.pessimisticDays}</td>
@@ -117,6 +162,7 @@ export function InternalDetailTM({ estimate }: Props) {
           <tr className={styles.tableTotal}>
             <td />
             <td>Total</td>
+            {useRoleBasedPricing && <td />}
             <td className={styles.tableRight}>{totals.totalOptimisticDays}</td>
             <td className={styles.tableRight}>{totals.totalLikelyDays}</td>
             <td className={styles.tableRight}>{totals.totalPessimisticDays}</td>

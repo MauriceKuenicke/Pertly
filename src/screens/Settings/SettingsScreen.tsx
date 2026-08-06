@@ -2,6 +2,7 @@ import { WindowTitleBar, Sidebar } from "../../components/layout";
 import { Card, Field } from "../../components/ui";
 import { useEstimates } from "../../state/EstimatesContext";
 import { CURRENCY_CODES, currencySymbol } from "../../lib/currency";
+import { createId } from "../../lib/id";
 import styles from "./SettingsScreen.module.css";
 
 export function SettingsScreen() {
@@ -92,6 +93,86 @@ export function SettingsScreen() {
                     value={settings.contingencyPct}
                     onChange={(e) => updateSettings((s) => ({ ...s, contingencyPct: Number(e.target.value) }))}
                   />
+                </div>
+              </Card>
+
+              <Card
+                title="Time & Materials rates"
+                description="Bill every work package the same, or set up roles with their own day rate. Applies to new estimates; existing ones keep their own roster."
+              >
+                <div className={styles.rateModeRow}>
+                  <button
+                    type="button"
+                    className={`${styles.rateModeOption} ${!settings.useRoleBasedPricing ? styles.rateModeOptionActive : ""}`}
+                    onClick={() => updateSettings((s) => ({ ...s, useRoleBasedPricing: false }))}
+                  >
+                    <div className={styles.rateModeHead}>
+                      <span className={`${styles.radio} ${!settings.useRoleBasedPricing ? styles.radioActive : ""}`} />
+                      <span className={styles.rateModeName}>Blended rate</span>
+                    </div>
+                    <p className={styles.rateModeDesc}>New estimates start with one day rate for every work package.</p>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.rateModeOption} ${settings.useRoleBasedPricing ? styles.rateModeOptionActive : ""}`}
+                    onClick={() => updateSettings((s) => ({ ...s, useRoleBasedPricing: true }))}
+                  >
+                    <div className={styles.rateModeHead}>
+                      <span className={`${styles.radio} ${settings.useRoleBasedPricing ? styles.radioActive : ""}`} />
+                      <span className={styles.rateModeName}>Role-based rates</span>
+                    </div>
+                    <p className={styles.rateModeDesc}>New estimates start with the roster below, assignable per package.</p>
+                  </button>
+                </div>
+
+                <div className={styles.roleList}>
+                  {settings.roles.map((role) => (
+                    <div className={styles.roleRow} key={role.id}>
+                      <input
+                        className={styles.roleNameInput}
+                        value={role.name}
+                        placeholder="Role name"
+                        onChange={(e) =>
+                          updateSettings((s) => ({
+                            ...s,
+                            roles: s.roles.map((r) => (r.id === role.id ? { ...r, name: e.target.value } : r)),
+                          }))
+                        }
+                      />
+                      <span className={styles.roleRateAffix}>{currencySymbol(settings.currency)}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        className={styles.roleRateInput}
+                        value={role.dayRate}
+                        onChange={(e) =>
+                          updateSettings((s) => ({
+                            ...s,
+                            roles: s.roles.map((r) => (r.id === role.id ? { ...r, dayRate: Number(e.target.value) } : r)),
+                          }))
+                        }
+                      />
+                      <span className={styles.roleRateUnit}>/ day</span>
+                      <button
+                        type="button"
+                        className={styles.removeBtn}
+                        aria-label="Remove role"
+                        onClick={() => updateSettings((s) => ({ ...s, roles: s.roles.filter((r) => r.id !== role.id) }))}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className={styles.addRow}
+                    onClick={() =>
+                      updateSettings((s) => ({ ...s, roles: [...s.roles, { id: createId(), name: "", dayRate: 0 }] }))
+                    }
+                  >
+                    <span className={styles.addPlus}>+</span>
+                    Add role
+                  </button>
                 </div>
               </Card>
 

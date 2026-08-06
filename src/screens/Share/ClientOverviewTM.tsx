@@ -12,12 +12,12 @@ interface Props {
 export function ClientOverviewTM({ estimate }: Props) {
   const currency = estimate.projectDetails.currency;
   const preparerName = estimate.projectDetails.preparerName;
-  const totals = calcTimeMaterials(estimate.timeMaterials.workPackages, estimate.rateEffort, estimate.overheadRisk);
+  const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
   const allocations = allocateBudgetByPackage(totals);
   const validUntil = formatDate(todayPlusDays(14));
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = totals.recommendedBudget + expensesTotal;
-  const milestones = calcPaymentMilestones(grandTotal);
+  const milestones = calcPaymentMilestones(grandTotal, estimate.timeMaterials.paymentSplit);
 
   return (
     <div className={styles.doc}>

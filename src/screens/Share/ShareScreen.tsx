@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { WizardLayout, FooterBar } from "../../components/layout";
-import { Button } from "../../components/ui";
+import { Button, Modal } from "../../components/ui";
 import type { WizardScreenProps } from "../wizardProps";
 import { breadcrumbLabelFor, windowTitleFor } from "../wizardProps";
 import { ClientOverviewTM } from "./ClientOverviewTM";
@@ -8,6 +8,7 @@ import { InternalDetailTM } from "./InternalDetailTM";
 import { ClientOverviewVBP } from "./ClientOverviewVBP";
 import { InternalDetailVBP } from "./InternalDetailVBP";
 import { buildProposalHtml } from "../../lib/proposalHtml";
+import { estimateToShareCode } from "../../lib/newEstimate";
 import styles from "./ShareScreen.module.css";
 
 type Tab = "client" | "internal";
@@ -23,6 +24,8 @@ export function ShareScreen({
   onMarkDone,
 }: WizardScreenProps) {
   const [tab, setTab] = useState<Tab>("client");
+  const [shareCode, setShareCode] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const isVBP = estimate.pricingMethod === "value-based";
   const clientName = estimate.projectDetails.clientName || "your client";
 
@@ -35,6 +38,22 @@ export function ShareScreen({
   const handleExport = async () => {
     const { html, suggestedName } = buildProposalHtml(estimate, tab);
     await window.pertly.exportPdf({ html, suggestedName: suggestedName ?? docFilename });
+  };
+
+  const handleShare = () => {
+    setCopied(false);
+    setShareCode(estimateToShareCode(estimate));
+  };
+
+  const handleCopyShareCode = async () => {
+    if (!shareCode) return;
+    try {
+      await navigator.clipboard.writeText(shareCode);
+      setCopied(true);
+    } catch {
+      // Clipboard API can fail (permissions, non-secure context); the
+      // read-only textarea is still right there for a manual copy.
+    }
   };
 
   return (
@@ -79,9 +98,14 @@ export function ShareScreen({
                 : "Share with teammates: includes rates, margins, and the full build-up."}
             </p>
           </div>
-          <Button variant="secondary" onClick={handleExport}>
-            Export PDF
-          </Button>
+          <div className={styles.topRowActions}>
+            <Button variant="secondary" onClick={handleShare}>
+              Share estimate
+            </Button>
+            <Button variant="secondary" onClick={handleExport}>
+              Export PDF
+            </Button>
+          </div>
         </div>
 
         <div className={styles.tabs}>
@@ -117,6 +141,26 @@ export function ShareScreen({
           </div>
         </div>
       </div>
+
+      {shareCode && (
+        <Modal
+          title="Share this estimate"
+          description="Copy this code and send it to anyone with Pertly. Pasting it in via Import on the Estimates list recreates a full, editable copy: rates, work breakdown, tiers, everything."
+          onClose={() => setShareCode(null)}
+        >
+          <textarea
+            className={styles.shareTextarea}
+            readOnly
+            value={shareCode}
+            onFocus={(e) => e.target.select()}
+          />
+          <div className={styles.shareActions}>
+            <Button variant="primary" onClick={handleCopyShareCode}>
+              {copied ? "Copied!" : "Copy to clipboard"}
+            </Button>
+          </div>
+        </Modal>
+      )}
     </WizardLayout>
   );
 }

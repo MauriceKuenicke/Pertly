@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { WindowTitleBar, Sidebar } from "../../components/layout";
-import { Badge, Button } from "../../components/ui";
+import { Badge, Button, Modal } from "../../components/ui";
 import { useEstimates } from "../../state/EstimatesContext";
 import type { Estimate } from "../../types/estimate";
 import { calcTimeMaterials, calcValueBased } from "../../lib/calc";
 import { formatMoney } from "../../lib/currency";
+import { importEstimateFromShareCode } from "../../lib/newEstimate";
 import styles from "./AllEstimatesScreen.module.css";
 
 function estimateHeadline(estimate: Estimate): number {
   if (estimate.pricingMethod === "time-materials") {
-    return calcTimeMaterials(estimate.timeMaterials.workPackages, estimate.rateEffort, estimate.overheadRisk)
-      .recommendedBudget;
+    return calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk).recommendedBudget;
   }
   return calcValueBased(estimate.valueBased).recommendedFee;
 }
@@ -28,9 +28,20 @@ function relativeDate(iso: string): string {
 }
 
 export function AllEstimatesScreen() {
-  const { estimates, goToList, goToSettings, createAndOpenEstimate, duplicateEstimate, openEstimate, deleteEstimate } =
-    useEstimates();
+  const {
+    estimates,
+    goToList,
+    goToSettings,
+    createAndOpenEstimate,
+    duplicateEstimate,
+    addImportedEstimate,
+    openEstimate,
+    deleteEstimate,
+  } = useEstimates();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importError, setImportError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!openMenuId) return;
@@ -38,6 +49,22 @@ export function AllEstimatesScreen() {
     document.addEventListener("click", closeMenu);
     return () => document.removeEventListener("click", closeMenu);
   }, [openMenuId]);
+
+  const closeImportModal = () => {
+    setImportOpen(false);
+    setImportText("");
+    setImportError(null);
+  };
+
+  const handleImport = () => {
+    try {
+      const estimate = importEstimateFromShareCode(importText);
+      addImportedEstimate(estimate);
+      closeImportModal();
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "That code doesn't look right.");
+    }
+  };
 
   return (
     <div className={styles.window}>
@@ -50,9 +77,14 @@ export function AllEstimatesScreen() {
               <h1 className={styles.title}>Estimates</h1>
               <p className={styles.subtitle}>Every quote you've built, saved locally on this machine.</p>
             </div>
-            <Button variant="primary" onClick={createAndOpenEstimate}>
-              + New estimate
-            </Button>
+            <div className={styles.headerActions}>
+              <Button variant="secondary" onClick={() => setImportOpen(true)}>
+                Import
+              </Button>
+              <Button variant="primary" onClick={createAndOpenEstimate}>
+                + New estimate
+              </Button>
+            </div>
           </div>
 
           <div className={styles.body}>
@@ -143,6 +175,30 @@ export function AllEstimatesScreen() {
           </div>
         </div>
       </div>
+
+      {importOpen && (
+        <Modal
+          title="Import an estimate"
+          description="Paste a share code from another Pertly estimate. It's imported as a new, editable estimate; nothing about the original is changed."
+          onClose={closeImportModal}
+        >
+          <textarea
+            className={styles.importTextarea}
+            placeholder="Paste the share code here…"
+            value={importText}
+            onChange={(e) => {
+              setImportText(e.target.value);
+              setImportError(null);
+            }}
+          />
+          {importError && <p className={styles.importError}>{importError}</p>}
+          <div className={styles.importActions}>
+            <Button variant="primary" disabled={!importText.trim()} onClick={handleImport}>
+              Import estimate
+            </Button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

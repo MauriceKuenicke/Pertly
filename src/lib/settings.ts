@@ -1,3 +1,4 @@
+import { DEFAULT_ROLES } from "./calc";
 import type { Settings } from "../types/estimate";
 
 export function defaultSettings(): Settings {
@@ -11,5 +12,7 @@ export function defaultSettings(): Settings {
     conservativePct: 35,
     attributionPct: 80,
     valueCaptureRatePct: 20,
+    useRoleBasedPricing: false,
+    roles: DEFAULT_ROLES.map((role) => ({ ...role })),
   };
 }

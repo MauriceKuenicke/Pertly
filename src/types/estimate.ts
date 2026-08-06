@@ -27,6 +27,13 @@ export interface WorkPackage {
   optimisticDays: number;
   likelyDays: number;
   pessimisticDays: number;
+  roleId?: string; // which role this package bills at; only used when useRoleBasedPricing is true
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  dayRate: number;
 }
 
 export interface ValueDriver {
@@ -58,6 +65,9 @@ export interface PaymentSplitEntry {
 
 export interface TimeMaterialsData {
   workPackages: WorkPackage[];
+  useRoleBasedPricing: boolean;
+  roles: Role[];
+  paymentSplit: PaymentSplitEntry[]; // suggested payment schedule, editable
 }
 
 export interface ValueBasedData {
@@ -99,6 +109,8 @@ export interface Settings {
   conservativePct: number;
   attributionPct: number;
   valueCaptureRatePct: number;
+  useRoleBasedPricing: boolean; // default for new Time & Materials estimates
+  roles: Role[]; // default roster copied into new estimates
 }
 
 export interface Store {

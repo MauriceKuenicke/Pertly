@@ -107,11 +107,59 @@ export function AssumptionsScreen({
   onNext,
   onSaveDraft,
 }: WizardScreenProps) {
-  const { projectDetails, rateEffort, overheadRisk, pricingMethod } = estimate;
+  const { projectDetails, rateEffort, overheadRisk, pricingMethod, timeMaterials } = estimate;
 
   const effectiveDayRate = rateEffort.dayRate * (1 + overheadRisk.overheadPct / 100);
   const overheadAmount = rateEffort.dayRate * (overheadRisk.overheadPct / 100);
   const canContinue = projectDetails.estimateName.trim().length > 0;
+
+  const setRateMode = (nextUseRoleBasedPricing: boolean) => {
+    onChange((e) => ({
+      ...e,
+      timeMaterials: {
+        ...e.timeMaterials,
+        useRoleBasedPricing: nextUseRoleBasedPricing,
+        // Give unassigned packages a sane default the moment role-based
+        // pricing is turned on, instead of leaving every row unassigned.
+        workPackages: nextUseRoleBasedPricing
+          ? e.timeMaterials.workPackages.map((pkg) =>
+              pkg.roleId ? pkg : { ...pkg, roleId: e.timeMaterials.roles[0]?.id },
+            )
+          : e.timeMaterials.workPackages,
+      },
+    }));
+  };
+
+  const addRole = () => {
+    onChange((e) => ({
+      ...e,
+      timeMaterials: { ...e.timeMaterials, roles: [...e.timeMaterials.roles, { id: createId(), name: "", dayRate: 0 }] },
+    }));
+  };
+
+  const updateRole = (id: string, patch: Partial<{ name: string; dayRate: number }>) => {
+    onChange((e) => ({
+      ...e,
+      timeMaterials: {
+        ...e.timeMaterials,
+        roles: e.timeMaterials.roles.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+      },
+    }));
+  };
+
+  const removeRole = (id: string) => {
+    onChange((e) => ({
+      ...e,
+      timeMaterials: {
+        ...e.timeMaterials,
+        roles: e.timeMaterials.roles.filter((r) => r.id !== id),
+        // A package pointing at a deleted role falls back to the blended
+        // rate; clearing roleId keeps that visible instead of leaving a
+        // dangling reference.
+        workPackages: e.timeMaterials.workPackages.map((pkg) => (pkg.roleId === id ? { ...pkg, roleId: undefined } : pkg)),
+      },
+    }));
+  };
 
   return (
     <WizardLayout
@@ -225,20 +273,108 @@ export function AssumptionsScreen({
             />
           </Card>
 
-          <Card
-            title="Rate & effort"
-            description="Your billing rate and the effort unit used across this estimate."
-          >
-            <div className={styles.row2}>
-              <Field
-                label="Day rate"
-                type="number"
-                min={0}
-                prefix={currencySymbol(projectDetails.currency)}
-                value={rateEffort.dayRate}
-                helpText="Your single freelance rate. It drives every cost below."
-                onChange={(e) => onChange((est) => ({ ...est, rateEffort: { ...est.rateEffort, dayRate: Number(e.target.value) } }))}
-              />
+          {pricingMethod === "value-based" ? (
+            <Card
+              title="Rate & effort"
+              description="Your billing rate and the effort unit used across this estimate."
+            >
+              <div className={styles.row2}>
+                <Field
+                  label="Day rate"
+                  type="number"
+                  min={0}
+                  prefix={currencySymbol(projectDetails.currency)}
+                  value={rateEffort.dayRate}
+                  helpText="Your single freelance rate. It drives every cost below."
+                  onChange={(e) => onChange((est) => ({ ...est, rateEffort: { ...est.rateEffort, dayRate: Number(e.target.value) } }))}
+                />
+                <Field
+                  label="Working hours / day"
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={rateEffort.workingHoursPerDay}
+                  helpText="For converting between hours and days."
+                  onChange={(e) =>
+                    onChange((est) => ({ ...est, rateEffort: { ...est.rateEffort, workingHoursPerDay: Number(e.target.value) } }))
+                  }
+                />
+              </div>
+            </Card>
+          ) : (
+            <Card title="Billing rate" description="Bill every work package the same, or assign a day rate per role.">
+              <div className={styles.methodRow}>
+                <button
+                  type="button"
+                  className={`${styles.methodOption} ${!timeMaterials.useRoleBasedPricing ? styles.methodOptionActive : ""}`}
+                  onClick={() => setRateMode(false)}
+                >
+                  <div className={styles.methodHead}>
+                    <span className={`${styles.radio} ${!timeMaterials.useRoleBasedPricing ? styles.radioActive : ""}`} />
+                    <span className={styles.methodName}>Blended rate</span>
+                  </div>
+                  <p className={styles.methodDesc}>Every work package bills at the same day rate.</p>
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.methodOption} ${timeMaterials.useRoleBasedPricing ? styles.methodOptionActive : ""}`}
+                  onClick={() => setRateMode(true)}
+                >
+                  <div className={styles.methodHead}>
+                    <span className={`${styles.radio} ${timeMaterials.useRoleBasedPricing ? styles.radioActive : ""}`} />
+                    <span className={styles.methodName}>Role-based rates</span>
+                  </div>
+                  <p className={styles.methodDesc}>Assign each work package to a role with its own day rate.</p>
+                </button>
+              </div>
+
+              {!timeMaterials.useRoleBasedPricing ? (
+                <Field
+                  label="Day rate"
+                  type="number"
+                  min={0}
+                  prefix={currencySymbol(projectDetails.currency)}
+                  value={rateEffort.dayRate}
+                  helpText="Your single freelance rate. It drives every work package's cost below."
+                  onChange={(e) => onChange((est) => ({ ...est, rateEffort: { ...est.rateEffort, dayRate: Number(e.target.value) } }))}
+                />
+              ) : (
+                <div className={styles.list}>
+                  {timeMaterials.roles.map((role) => (
+                    <div className={styles.expenseRow} key={role.id}>
+                      <input
+                        className={styles.listInput}
+                        value={role.name}
+                        placeholder="Role name"
+                        onChange={(e) => updateRole(role.id, { name: e.target.value })}
+                      />
+                      <span className={styles.expenseAffix}>{currencySymbol(projectDetails.currency)}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        className={styles.expenseAmountInput}
+                        value={role.dayRate}
+                        onChange={(e) => updateRole(role.id, { dayRate: Number(e.target.value) })}
+                      />
+                      <span className={styles.expenseAffix}>/ day</span>
+                      <button
+                        type="button"
+                        className={styles.removeBtn}
+                        aria-label="Remove role"
+                        onClick={() => removeRole(role.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className={styles.addRow} onClick={addRole}>
+                    <span className={styles.addPlus}>+</span>
+                    Add role
+                  </button>
+                </div>
+              )}
+
               <Field
                 label="Working hours / day"
                 type="number"
@@ -250,8 +386,8 @@ export function AssumptionsScreen({
                   onChange((est) => ({ ...est, rateEffort: { ...est.rateEffort, workingHoursPerDay: Number(e.target.value) } }))
                 }
               />
-            </div>
-          </Card>
+            </Card>
+          )}
 
           <Card
             title="Overhead & risk"

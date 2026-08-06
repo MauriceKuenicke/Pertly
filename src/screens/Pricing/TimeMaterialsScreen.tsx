@@ -1,6 +1,6 @@
 import { WizardLayout, FooterBar } from "../../components/layout";
 import { Button, Card } from "../../components/ui";
-import { calcTimeMaterials, normalizeWorkPackageDays } from "../../lib/calc";
+import { calcRoleBreakdown, calcTimeMaterials, normalizeWorkPackageDays } from "../../lib/calc";
 import { formatDays, formatMoney } from "../../lib/currency";
 import { createId } from "../../lib/id";
 import type { WizardScreenProps } from "../wizardProps";
@@ -18,13 +18,20 @@ export function TimeMaterialsScreen({
   onBack,
   onNext,
 }: WizardScreenProps) {
-  const totals = calcTimeMaterials(estimate.timeMaterials.workPackages, estimate.rateEffort, estimate.overheadRisk);
+  const { timeMaterials } = estimate;
+  const useRoleBasedPricing = timeMaterials.useRoleBasedPricing;
+  const totals = calcTimeMaterials(timeMaterials, estimate.rateEffort, estimate.overheadRisk);
+  const roleBreakdown = calcRoleBreakdown(timeMaterials, estimate.rateEffort);
   const currency = estimate.projectDetails.currency;
 
-  const updateRow = (id: string, patch: Partial<{ name: string; optimisticDays: number; likelyDays: number; pessimisticDays: number }>) => {
+  const updateRow = (
+    id: string,
+    patch: Partial<{ name: string; optimisticDays: number; likelyDays: number; pessimisticDays: number; roleId: string | undefined }>,
+  ) => {
     onChange((e) => ({
       ...e,
       timeMaterials: {
+        ...e.timeMaterials,
         workPackages: e.timeMaterials.workPackages.map((r) =>
           r.id === id ? normalizeWorkPackageDays({ ...r, ...patch }) : r,
         ),
@@ -73,9 +80,10 @@ export function TimeMaterialsScreen({
             info="Three-point (PERT) estimation turns a range into one defensible number per deliverable. It matters because a single-guess estimate hides your uncertainty, and this makes it explicit, combining it mathematically into one confidence interval for the whole project."
           >
             <div className={styles.table}>
-              <div className={styles.headerRow}>
+              <div className={`${styles.headerRow} ${useRoleBasedPricing ? styles.roleColsOn : ""}`}>
                 <span className={styles.colNum}>#</span>
                 <span className={styles.colName}>WORK PACKAGE</span>
+                {useRoleBasedPricing && <span className={styles.colName}>ROLE</span>}
                 <span className={styles.colNum}>OPT.</span>
                 <span className={styles.colNum}>LIKELY</span>
                 <span className={styles.colNum}>PESS.</span>
@@ -85,7 +93,7 @@ export function TimeMaterialsScreen({
                 <span className={styles.colDel} />
               </div>
               {totals.rows.map((row, i) => (
-                <div className={styles.row} key={row.id}>
+                <div className={`${styles.row} ${useRoleBasedPricing ? styles.roleColsOn : ""}`} key={row.id}>
                   <span className={styles.colNum}>{i + 1}</span>
                   <input
                     className={styles.nameInput}
@@ -93,6 +101,20 @@ export function TimeMaterialsScreen({
                     placeholder="Deliverable name"
                     onChange={(e) => updateRow(row.id, { name: e.target.value })}
                   />
+                  {useRoleBasedPricing && (
+                    <select
+                      className={`${styles.roleSelect} ${!row.roleId || !timeMaterials.roles.some((r) => r.id === row.roleId) ? styles.roleSelectUnassigned : ""}`}
+                      value={row.roleId ?? ""}
+                      onChange={(e) => updateRow(row.id, { roleId: e.target.value || undefined })}
+                    >
+                      <option value="">Unassigned (blended)</option>
+                      {timeMaterials.roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name || "Untitled role"} ({formatMoney(role.dayRate, currency)}/day)
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <input
                     className={styles.numInput}
                     type="number"
@@ -124,7 +146,10 @@ export function TimeMaterialsScreen({
                     onClick={() =>
                       onChange((e) => ({
                         ...e,
-                        timeMaterials: { workPackages: e.timeMaterials.workPackages.filter((r) => r.id !== row.id) },
+                        timeMaterials: {
+                          ...e.timeMaterials,
+                          workPackages: e.timeMaterials.workPackages.filter((r) => r.id !== row.id),
+                        },
                       }))
                     }
                   >
@@ -132,9 +157,10 @@ export function TimeMaterialsScreen({
                   </button>
                 </div>
               ))}
-              <div className={styles.totalRow}>
+              <div className={`${styles.totalRow} ${useRoleBasedPricing ? styles.roleColsOn : ""}`}>
                 <span />
                 <span>Total</span>
+                {useRoleBasedPricing && <span />}
                 <span className={styles.colNum}>{totals.totalOptimisticDays}</span>
                 <span className={styles.colNum}>{totals.totalLikelyDays}</span>
                 <span className={styles.colNum}>{totals.totalPessimisticDays}</span>
@@ -151,9 +177,17 @@ export function TimeMaterialsScreen({
                 onChange((e) => ({
                   ...e,
                   timeMaterials: {
+                    ...e.timeMaterials,
                     workPackages: [
                       ...e.timeMaterials.workPackages,
-                      { id: createId(), name: "", optimisticDays: 1, likelyDays: 2, pessimisticDays: 4 },
+                      {
+                        id: createId(),
+                        name: "",
+                        optimisticDays: 1,
+                        likelyDays: 2,
+                        pessimisticDays: 4,
+                        roleId: e.timeMaterials.useRoleBasedPricing ? e.timeMaterials.roles[0]?.id : undefined,
+                      },
                     ],
                   },
                 }))
@@ -165,7 +199,7 @@ export function TimeMaterialsScreen({
         </div>
 
         <div className={styles.rightPanel}>
-          <Card title="Estimate summary">
+          <Card title="Estimate summary" description="How the recommended budget is calculated, step by step.">
             <div className={styles.bigNumber}>
               <span className={styles.bigNumberValue}>{formatDays(totals.expectedDays)}</span>
               <span className={styles.bigNumberLabel}>expected days</span>
@@ -178,6 +212,19 @@ export function TimeMaterialsScreen({
               <span>Base cost (expected)</span>
               <span>{formatMoney(totals.baseCost, currency)}</span>
             </div>
+            <div className={styles.summaryRow}>
+              <span>+ Overhead ({estimate.overheadRisk.overheadPct}%)</span>
+              <span>{formatMoney(totals.overheadAmount, currency)}</span>
+            </div>
+            <div className={styles.summaryRowSub}>
+              <span>Delivery subtotal</span>
+              <span>{formatMoney(totals.deliverySubtotal, currency)}</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>+ Contingency ({estimate.overheadRisk.contingencyPct}%)</span>
+              <span>{formatMoney(totals.contingencyAmount, currency)}</span>
+            </div>
+            <div className={styles.divider} />
             <div className={styles.summaryRowBig}>
               <span>Recommended budget</span>
               <span>{formatMoney(totals.recommendedBudget, currency)}</span>
@@ -185,9 +232,31 @@ export function TimeMaterialsScreen({
             <div className={styles.divider} />
             <p className={styles.footnote}>
               Uncertainty is combined with root-sum-of-squares across packages, not simple addition, so total risk isn't
-              overstated.
+              overstated. Overhead covers non-billable effort; contingency buffers estimation uncertainty. Both are set on
+              the Assumptions step.
             </p>
           </Card>
+
+          {roleBreakdown.length > 0 && (
+            <Card title="Rate split by role" description="Where the base cost above comes from.">
+              <div className={styles.roleBreakdownList}>
+                {roleBreakdown.map((row) => (
+                  <div className={styles.roleBreakdownRow} key={row.roleId}>
+                    <div className={styles.roleBreakdownHead}>
+                      <span className={styles.roleBreakdownName}>{row.roleName || "Untitled role"}</span>
+                      <span className={styles.roleBreakdownCost}>{formatMoney(row.cost, currency)}</span>
+                    </div>
+                    <div className={styles.roleBreakdownBar}>
+                      <div className={styles.roleBreakdownBarFill} style={{ width: `${Math.min(100, row.pctOfCost)}%` }} />
+                    </div>
+                    <span className={styles.roleBreakdownMeta}>
+                      {formatDays(row.days)} d at {formatMoney(row.dayRate, currency)}/day · {Math.round(row.pctOfCost)}% of cost
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </WizardLayout>

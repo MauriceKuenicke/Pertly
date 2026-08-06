@@ -78,3 +78,9 @@ This compiles the app and runs `electron-builder`, producing an installer for yo
 - macOS: `.dmg`
 - Windows: NSIS `.exe` installer
 - Linux: `.AppImage`
+
+> **macOS: "Pertly is damaged and can't be opened"** — the build isn't code-signed or notarized, so Gatekeeper blocks it after download. Fix by clearing the quarantine flag after installing to `/Applications`:
+>
+> ```bash
+> xattr -cr /Applications/Pertly.app
+> ```

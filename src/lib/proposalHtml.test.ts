@@ -25,7 +25,10 @@ function maliciousEstimate(pricingMethod: Estimate["pricingMethod"]): Estimate {
   estimate.exclusions = [SCRIPT_PAYLOAD];
   estimate.expenses = [{ id: "x1", label: IMG_PAYLOAD, amount: 100 }];
   estimate.timeMaterials = {
-    workPackages: [{ id: "w1", name: IMG_PAYLOAD, optimisticDays: 1, likelyDays: 2, pessimisticDays: 4 }],
+    workPackages: [{ id: "w1", name: IMG_PAYLOAD, optimisticDays: 1, likelyDays: 2, pessimisticDays: 4, roleId: "r1" }],
+    useRoleBasedPricing: true,
+    roles: [{ id: "r1", name: SCRIPT_PAYLOAD, dayRate: 100 }],
+    paymentSplit: [{ label: IMG_PAYLOAD, pct: 100 }],
   };
   estimate.valueBased = {
     ...estimate.valueBased,

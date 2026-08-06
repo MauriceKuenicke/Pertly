@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Estimate, Settings, Store, WizardStep } from "../types/estimate";
-import { cloneEstimate, createEstimate } from "../lib/newEstimate";
+import { cloneEstimate, createEstimate, normalizeEstimate } from "../lib/newEstimate";
 import { defaultSettings } from "../lib/settings";
 
 type View = "list" | "wizard" | "settings";
@@ -18,6 +18,7 @@ interface EstimatesContextValue {
   goToSettings: () => void;
   createAndOpenEstimate: () => void;
   duplicateEstimate: (id: string) => void;
+  addImportedEstimate: (estimate: Estimate) => void;
   openEstimate: (id: string) => void;
   deleteEstimate: (id: string) => void;
   updateActiveEstimate: (updater: (estimate: Estimate) => Estimate) => void;
@@ -45,7 +46,7 @@ export function EstimatesProvider({ children }: { children: ReactNode }) {
     window.pertly.readStore().then((data) => {
       const loadedStore = data as Partial<Store>;
       setStore({
-        estimates: loadedStore.estimates ?? [],
+        estimates: (loadedStore.estimates ?? []).map(normalizeEstimate),
         settings: { ...defaultSettings(), ...loadedStore.settings },
       });
       setLoaded(true);
@@ -96,6 +97,13 @@ export function EstimatesProvider({ children }: { children: ReactNode }) {
     },
     [store.estimates],
   );
+
+  const addImportedEstimate = useCallback((estimate: Estimate) => {
+    setStore((s) => ({ ...s, estimates: [estimate, ...s.estimates] }));
+    setDraftEstimate(null);
+    setActiveEstimateId(estimate.id);
+    setView("wizard");
+  }, []);
 
   const openEstimate = useCallback((id: string) => {
     setDraftEstimate(null);
@@ -186,6 +194,7 @@ export function EstimatesProvider({ children }: { children: ReactNode }) {
     goToSettings,
     createAndOpenEstimate,
     duplicateEstimate,
+    addImportedEstimate,
     openEstimate,
     deleteEstimate,
     updateActiveEstimate,

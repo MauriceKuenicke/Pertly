@@ -1,6 +1,6 @@
 import type { Estimate } from "../../types/estimate";
-import { calcPaymentMilestones, calcValueBased, sumExpenses } from "../../lib/calc";
-import { formatMoney } from "../../lib/currency";
+import { calcBreakEvenEffort, calcPaymentMilestones, calcValueBased, sumExpenses } from "../../lib/calc";
+import { formatDays, formatMoney } from "../../lib/currency";
 import { formatDate, formatWeeksRange } from "../../lib/date";
 import { ExpensesSection, PaymentScheduleSection } from "./ProposalExtras";
 import styles from "./ProposalDoc.module.css";
@@ -16,6 +16,7 @@ export function InternalDetailVBP({ estimate }: Props) {
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = totals.recommendedFee + expensesTotal;
   const milestones = calcPaymentMilestones(grandTotal, estimate.valueBased.paymentSplit);
+  const breakEven = calcBreakEvenEffort(totals.recommendedFee, estimate.rateEffort, estimate.overheadRisk);
 
   return (
     <div className={styles.doc}>
@@ -110,6 +111,16 @@ export function InternalDetailVBP({ estimate }: Props) {
           </div>
         </>
       )}
+
+      <h2 className={styles.sectionHeading}>Break-even effort</h2>
+      <div className={styles.buildRow}>
+        <span>Your effective day rate ({estimate.overheadRisk.overheadPct}% overhead)</span>
+        <span>{formatMoney(breakEven.effectiveDayRate, currency)}</span>
+      </div>
+      <div className={styles.buildRowTotal}>
+        <span>Break-even effort</span>
+        <span>{formatDays(breakEven.breakEvenDays)} d</span>
+      </div>
 
       <h2 className={styles.sectionHeading}>Tier economics</h2>
       <table className={styles.table}>

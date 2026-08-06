@@ -1,6 +1,7 @@
 import { WizardLayout, FooterBar } from "../../components/layout";
 import { Button, Card } from "../../components/ui";
 import {
+  calcBreakEvenEffort,
   calcPaymentMilestones,
   calcValueBased,
   matchingPaymentSplitPresetId,
@@ -8,7 +9,7 @@ import {
   sumExpenses,
   type PaymentSplitPreset,
 } from "../../lib/calc";
-import { formatMoney } from "../../lib/currency";
+import { formatDays, formatMoney } from "../../lib/currency";
 import { formatWeeksRange } from "../../lib/date";
 import type { WizardScreenProps } from "../wizardProps";
 import { breadcrumbLabelFor, windowTitleFor } from "../wizardProps";
@@ -48,6 +49,7 @@ export function SummaryVBPScreen({
   const currency = estimate.projectDetails.currency;
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = totals.recommendedFee + expensesTotal;
+  const breakEven = calcBreakEvenEffort(totals.recommendedFee, estimate.rateEffort, estimate.overheadRisk);
   const paymentSplit = estimate.valueBased.paymentSplit;
   const milestones = calcPaymentMilestones(grandTotal, paymentSplit);
   const activeSplitPresetId = matchingPaymentSplitPresetId(paymentSplit);
@@ -192,6 +194,21 @@ export function SummaryVBPScreen({
             ))}
           </Card>
         </div>
+
+        <Card title="Break-even effort" description="Internal only. Never appears on the client proposal.">
+          <div className={styles.buildRow}>
+            <span>Your effective day rate ({estimate.overheadRisk.overheadPct}% overhead)</span>
+            <span>{formatMoney(breakEven.effectiveDayRate, currency)}</span>
+          </div>
+          <div className={styles.divider} />
+          <div className={styles.buildRowTotal}>
+            <span>Break-even effort</span>
+            <span>{formatDays(breakEven.breakEvenDays)} d</span>
+          </div>
+          <p className={styles.kpiFoot}>
+            Spend more than this delivering the work and you're effectively earning less than your normal day rate.
+          </p>
+        </Card>
 
         <Card title="Suggested payment schedule" description="Pick the split that fits the engagement.">
           <div className={styles.splitPresetRow}>

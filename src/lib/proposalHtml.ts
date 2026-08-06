@@ -1,11 +1,14 @@
 import type { Estimate, ExpenseItem } from "../types/estimate";
 import {
   allocateBudgetByPackage,
+  calcBreakEvenEffort,
   calcPaymentMilestones,
+  calcRoleBreakdown,
   calcTimeMaterials,
   calcValueBased,
   sumExpenses,
   type PaymentMilestone,
+  type RoleBreakdownRow,
 } from "./calc";
 import { formatDays, formatMoney } from "./currency";
 import { formatDate, formatWeeksRange, todayPlusDays } from "./date";
@@ -98,7 +101,22 @@ function paymentScheduleHtml(milestones: PaymentMilestone[], currency: string): 
   return `
     <h2>Suggested payment schedule</h2>
     <table><thead><tr><th>MILESTONE</th><th class="r">SHARE</th><th class="r">AMOUNT</th></tr></thead><tbody>
-      ${milestones.map((m) => `<tr><td>${m.label}</td><td class="r">${m.pct}%</td><td class="r">${formatMoney(m.amount, currency)}</td></tr>`).join("")}
+      ${milestones.map((m) => `<tr><td>${esc(m.label)}</td><td class="r">${m.pct}%</td><td class="r">${formatMoney(m.amount, currency)}</td></tr>`).join("")}
+    </tbody></table>
+  `;
+}
+
+function roleBreakdownHtml(roleBreakdown: RoleBreakdownRow[], currency: string): string {
+  if (roleBreakdown.length === 0) return "";
+  return `
+    <h2>Team & rate breakdown</h2>
+    <table><thead><tr><th>ROLE</th><th class="r">DAY RATE</th><th class="r">DAYS</th><th class="r">COST</th><th class="r">% OF COST</th></tr></thead><tbody>
+      ${roleBreakdown
+        .map(
+          (r) =>
+            `<tr><td>${esc(r.roleName || "Untitled role")}</td><td class="r">${formatMoney(r.dayRate, currency)}</td><td class="r">${formatDays(r.days)}</td><td class="r">${formatMoney(r.cost, currency)}</td><td class="r">${Math.round(r.pctOfCost)}%</td></tr>`,
+        )
+        .join("")}
     </tbody></table>
   `;
 }
@@ -106,12 +124,12 @@ function paymentScheduleHtml(milestones: PaymentMilestone[], currency: string): 
 function clientOverviewTmHtml(estimate: Estimate): string {
   const currency = estimate.projectDetails.currency;
   const preparerName = estimate.projectDetails.preparerName;
-  const totals = calcTimeMaterials(estimate.timeMaterials.workPackages, estimate.rateEffort, estimate.overheadRisk);
+  const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
   const allocations = allocateBudgetByPackage(totals);
   const validUntil = formatDate(todayPlusDays(14));
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = totals.recommendedBudget + expensesTotal;
-  const milestones = calcPaymentMilestones(grandTotal);
+  const milestones = calcPaymentMilestones(grandTotal, estimate.timeMaterials.paymentSplit);
 
   return wrap(
     "Project Estimate",
@@ -144,10 +162,16 @@ function clientOverviewTmHtml(estimate: Estimate): string {
 
 function internalDetailTmHtml(estimate: Estimate): string {
   const currency = estimate.projectDetails.currency;
-  const totals = calcTimeMaterials(estimate.timeMaterials.workPackages, estimate.rateEffort, estimate.overheadRisk);
+  const useRoleBasedPricing = estimate.timeMaterials.useRoleBasedPricing;
+  const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
+  const roleBreakdown = calcRoleBreakdown(estimate.timeMaterials, estimate.rateEffort);
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = totals.recommendedBudget + expensesTotal;
-  const milestones = calcPaymentMilestones(grandTotal);
+  const milestones = calcPaymentMilestones(grandTotal, estimate.timeMaterials.paymentSplit);
+  const roleNameFor = (roleId: string | undefined) => {
+    const role = estimate.timeMaterials.roles.find((r) => r.id === roleId);
+    return role ? role.name || "Untitled role" : "Unassigned";
+  };
 
   return wrap(
     "Internal Cost Breakdown",
@@ -156,13 +180,13 @@ function internalDetailTmHtml(estimate: Estimate): string {
     <h1>${esc(estimate.projectDetails.estimateName || "Project")}: Internal Cost Breakdown</h1>
     <p style="margin-top:-12px">${esc(estimate.projectDetails.clientName || "-")} · prepared by ${esc(estimate.projectDetails.preparerName || "-")} · ${formatDate(new Date())}</p>
     ${metaGrid([
-      ["DAY RATE", formatMoney(estimate.rateEffort.dayRate, currency)],
+      ["DAY RATE", useRoleBasedPricing ? `Role-based (${estimate.timeMaterials.roles.length})` : formatMoney(estimate.rateEffort.dayRate, currency)],
       ["OVERHEAD", `${estimate.overheadRisk.overheadPct}%`],
       ["CONTINGENCY", `${estimate.overheadRisk.contingencyPct}%`],
       ["NTE CAP BASIS", "Pessimistic case"],
     ])}
     <h2>Cost build-up</h2>
-    <div class="row"><span>Base delivery cost (${formatDays(totals.expectedDays)} d × ${formatMoney(estimate.rateEffort.dayRate, currency)})</span><span>${formatMoney(totals.baseCost, currency)}</span></div>
+    <div class="row"><span>Base delivery cost (${useRoleBasedPricing ? `${formatDays(totals.expectedDays)} d across roles` : `${formatDays(totals.expectedDays)} d × ${formatMoney(estimate.rateEffort.dayRate, currency)}`})</span><span>${formatMoney(totals.baseCost, currency)}</span></div>
     <div class="row"><span>+ Overhead (${estimate.overheadRisk.overheadPct}%)</span><span>${formatMoney(totals.overheadAmount, currency)}</span></div>
     <div class="row"><span>+ Contingency (${estimate.overheadRisk.contingencyPct}%)</span><span>${formatMoney(totals.contingencyAmount, currency)}</span></div>
     <div class="row total"><span>Recommended budget</span><span>${formatMoney(totals.recommendedBudget, currency)}</span></div>
@@ -173,15 +197,16 @@ function internalDetailTmHtml(estimate: Estimate): string {
     <div class="row total"><span>Total quoted price</span><span>${formatMoney(grandTotal, currency)}</span></div>`
         : ""
     }
+    ${roleBreakdownHtml(roleBreakdown, currency)}
     <h2>Detailed work breakdown</h2>
-    <table><thead><tr><th>#</th><th>WORK PACKAGE</th><th class="r">O</th><th class="r">M</th><th class="r">P</th><th class="r">EXPECTED</th><th class="r">σ</th><th class="r">COST</th></tr></thead><tbody>
+    <table><thead><tr><th>#</th><th>WORK PACKAGE</th>${useRoleBasedPricing ? "<th>ROLE</th>" : ""}<th class="r">O</th><th class="r">M</th><th class="r">P</th><th class="r">EXPECTED</th><th class="r">σ</th><th class="r">COST</th></tr></thead><tbody>
       ${totals.rows
         .map(
           (row, i) =>
-            `<tr><td>${i + 1}</td><td>${esc(row.name || "Untitled package")}</td><td class="r">${row.optimisticDays}</td><td class="r">${row.likelyDays}</td><td class="r">${row.pessimisticDays}</td><td class="r">${formatDays(row.expectedDays)}</td><td class="r">±${formatDays(row.sigmaDays, 2)}</td><td class="r">${formatMoney(row.cost, currency)}</td></tr>`,
+            `<tr><td>${i + 1}</td><td>${esc(row.name || "Untitled package")}</td>${useRoleBasedPricing ? `<td>${esc(roleNameFor(row.roleId))}</td>` : ""}<td class="r">${row.optimisticDays}</td><td class="r">${row.likelyDays}</td><td class="r">${row.pessimisticDays}</td><td class="r">${formatDays(row.expectedDays)}</td><td class="r">±${formatDays(row.sigmaDays, 2)}</td><td class="r">${formatMoney(row.cost, currency)}</td></tr>`,
         )
         .join("")}
-      <tr class="total"><td></td><td>Total</td><td class="r">${totals.totalOptimisticDays}</td><td class="r">${totals.totalLikelyDays}</td><td class="r">${totals.totalPessimisticDays}</td><td class="r">${formatDays(totals.expectedDays)}</td><td class="r">±${formatDays(totals.sigmaDays, 2)}</td><td class="r">${formatMoney(totals.baseCost, currency)}</td></tr>
+      <tr class="total"><td></td><td>Total</td>${useRoleBasedPricing ? "<td></td>" : ""}<td class="r">${totals.totalOptimisticDays}</td><td class="r">${totals.totalLikelyDays}</td><td class="r">${totals.totalPessimisticDays}</td><td class="r">${formatDays(totals.expectedDays)}</td><td class="r">±${formatDays(totals.sigmaDays, 2)}</td><td class="r">${formatMoney(totals.baseCost, currency)}</td></tr>
     </tbody></table>
     ${expensesSectionHtml(estimate.expenses, currency)}
     ${paymentScheduleHtml(milestones, currency)}
@@ -242,6 +267,7 @@ function internalDetailVbpHtml(estimate: Estimate): string {
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = totals.recommendedFee + expensesTotal;
   const milestones = calcPaymentMilestones(grandTotal, estimate.valueBased.paymentSplit);
+  const breakEven = calcBreakEvenEffort(totals.recommendedFee, estimate.rateEffort, estimate.overheadRisk);
 
   return wrap(
     "Internal Fee Breakdown",
@@ -272,6 +298,9 @@ function internalDetailVbpHtml(estimate: Estimate): string {
     <div class="row total"><span>Total quoted price</span><span>${formatMoney(grandTotal, currency)}</span></div>`
         : ""
     }
+    <h2>Break-even effort</h2>
+    <div class="row"><span>Your effective day rate (${estimate.overheadRisk.overheadPct}% overhead)</span><span>${formatMoney(breakEven.effectiveDayRate, currency)}</span></div>
+    <div class="row total"><span>Break-even effort</span><span>${formatDays(breakEven.breakEvenDays)} d</span></div>
     <h2>Tier economics</h2>
     <table><thead><tr><th>TIER</th><th>DURATION</th><th class="r">vs. ${esc(tierB?.name ?? "Tier B")}</th><th class="r">PRICE</th></tr></thead><tbody>
       ${estimate.valueBased.tiers
