@@ -61,6 +61,7 @@ export function ShareScreen({
       windowTitle={windowTitleFor(estimate)}
       breadcrumbLabel={breadcrumbLabelFor(estimate)}
       currentStep={4}
+      furthestStep={estimate.furthestStep}
       savedLabel={savedLabel}
       onGoToList={onGoToList}
       onNewEstimate={onNewEstimate}
@@ -75,9 +76,9 @@ export function ShareScreen({
           }
           right={
             <>
-              <span className={styles.stepText}>Step 4 of 4: Estimate complete</span>
+              <span className={styles.stepText}>Step 4 of 4: Estimate Complete</span>
               <Button variant="primary" disabled={estimate.status === "done"} onClick={onMarkDone}>
-                {estimate.status === "done" ? "Marked as done ✓" : "Mark as done"}
+                {estimate.status === "done" ? "Marked As Done ✓" : "Mark As Done"}
               </Button>
             </>
           }
@@ -88,7 +89,7 @@ export function ShareScreen({
         <div className={styles.topRow}>
           <div className={styles.pageHeader}>
             <h1 className={styles.pageTitle}>
-              {tab === "client" ? `Ready to share with ${clientName}` : isVBP ? "Internal fee breakdown" : "Internal cost breakdown"}
+              {tab === "client" ? `Ready to Share With ${clientName}` : isVBP ? "Internal Fee Breakdown" : "Internal Cost Breakdown"}
             </h1>
             <p className={styles.pageSubtitle}>
               {tab === "client"
@@ -100,7 +101,7 @@ export function ShareScreen({
           </div>
           <div className={styles.topRowActions}>
             <Button variant="secondary" onClick={handleShare}>
-              Share estimate
+              Share Estimate
             </Button>
             <Button variant="secondary" onClick={handleExport}>
               Export PDF
@@ -110,11 +111,11 @@ export function ShareScreen({
 
         <div className={styles.tabs}>
           <button className={`${styles.tab} ${tab === "client" ? styles.tabActive : ""}`} onClick={() => setTab("client")}>
-            <span className={styles.tabTitle}>Client overview</span>
+            <span className={styles.tabTitle}>Client Overview</span>
             <span className={styles.tabSub}>External · no {isVBP ? "formulas" : "rates"}</span>
           </button>
           <button className={`${styles.tab} ${tab === "internal" ? styles.tabActive : ""}`} onClick={() => setTab("internal")}>
-            <span className={styles.tabTitle}>Internal detail</span>
+            <span className={styles.tabTitle}>Internal Detail</span>
             <span className={styles.tabSub}>Team · full build-up</span>
           </button>
         </div>
@@ -144,7 +145,7 @@ export function ShareScreen({
 
       {shareCode && (
         <Modal
-          title="Share this estimate"
+          title="Share This Estimate"
           description="Copy this code and send it to anyone with Pertly. Pasting it in via Import on the Estimates list recreates a full, editable copy: rates, work breakdown, tiers, everything."
           onClose={() => setShareCode(null)}
         >
@@ -156,7 +157,7 @@ export function ShareScreen({
           />
           <div className={styles.shareActions}>
             <Button variant="primary" onClick={handleCopyShareCode}>
-              {copied ? "Copied!" : "Copy to clipboard"}
+              {copied ? "Copied!" : "Copy to Clipboard"}
             </Button>
           </div>
         </Modal>

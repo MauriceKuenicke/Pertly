@@ -85,7 +85,16 @@ export interface TimeMaterialsTotals {
   contingencyAmount: number;
   recommendedBudget: number;
   pessimisticCost: number;
+  pessimisticOverheadAmount: number;
+  pessimisticSubtotal: number;
+  pessimisticContingencyAmount: number;
   notToExceedCap: number;
+  riskAdjustedCost: number;
+  riskAdjustedOverheadAmount: number;
+  riskAdjustedSubtotal: number;
+  riskAdjustedContingencyAmount: number;
+  fixedPriceQuote: number;
+  riskCoverageAmount: number;
 }
 
 export function calcTimeMaterials(
@@ -123,6 +132,37 @@ export function calcTimeMaterials(
   const pessimisticCost = sum(rows.map((r) => r.pessimisticDays * r.dayRate));
   const notToExceedCap = pessimisticCost * (1 + overheadPct) * (1 + contingencyPct);
 
+  // Mirrors the baseCost -> overheadAmount -> deliverySubtotal ->
+  // contingencyAmount -> recommendedBudget build-up above, but off the
+  // pessimistic case. Exposed as its own steps (rather than just the final
+  // notToExceedCap) so fixed-price mode can show how that figure was built,
+  // the same way variable mode shows how the recommended budget was built,
+  // without re-deriving the math in a screen component.
+  const pessimisticOverheadAmount = pessimisticCost * overheadPct;
+  const pessimisticSubtotal = pessimisticCost + pessimisticOverheadAmount;
+  const pessimisticContingencyAmount = pessimisticSubtotal * contingencyPct;
+
+  // Fixed-price mode's quote baseline: interpolates linearly between the
+  // expected case and the full pessimistic case before the same
+  // overhead/contingency markup is applied, so a freelancer can choose how
+  // much of the worst case to price in rather than always quoting the full
+  // pessimistic figure (which is what happens at 100%). At 0% this chain is
+  // identical to the recommendedBudget build-up above; at 100% it's
+  // identical to the pessimistic/notToExceedCap build-up. Clamped
+  // defensively even though the UI already constrains the slider to 0-100.
+  const riskCoveragePct = Math.max(0, Math.min(100, timeMaterials.fixedPriceRiskCoveragePct)) / 100;
+  const riskAdjustedCost = baseCost + (pessimisticCost - baseCost) * riskCoveragePct;
+  const riskAdjustedOverheadAmount = riskAdjustedCost * overheadPct;
+  const riskAdjustedSubtotal = riskAdjustedCost + riskAdjustedOverheadAmount;
+  const riskAdjustedContingencyAmount = riskAdjustedSubtotal * contingencyPct;
+  const fixedPriceQuote = riskAdjustedSubtotal + riskAdjustedContingencyAmount;
+
+  // The slider's dollar impact before overhead/contingency reapply to the
+  // larger base: how much risk coverage adds to the base cost on its own,
+  // shown as its own line in every build-up chain rather than folded
+  // silently into "base delivery cost."
+  const riskCoverageAmount = riskAdjustedCost - baseCost;
+
   return {
     rows,
     totalOptimisticDays,
@@ -137,17 +177,33 @@ export function calcTimeMaterials(
     contingencyAmount,
     recommendedBudget,
     pessimisticCost,
+    pessimisticOverheadAmount,
+    pessimisticSubtotal,
+    pessimisticContingencyAmount,
     notToExceedCap,
+    riskAdjustedCost,
+    riskAdjustedOverheadAmount,
+    riskAdjustedSubtotal,
+    riskAdjustedContingencyAmount,
+    fixedPriceQuote,
+    riskCoverageAmount,
   };
 }
 
-/** Distributes the recommended budget across work packages, proportional to base cost. */
-export function allocateBudgetByPackage(totals: TimeMaterialsTotals): { id: string; name: string; amount: number }[] {
+/**
+ * Distributes a total across work packages, proportional to base cost.
+ * Defaults to the recommended budget (variable-mode quote); pass the fixed
+ * price explicitly to allocate against that instead, in fixed-price mode.
+ */
+export function allocateBudgetByPackage(
+  totals: TimeMaterialsTotals,
+  targetTotal: number = totals.recommendedBudget,
+): { id: string; name: string; amount: number }[] {
   if (totals.baseCost === 0) return totals.rows.map((r) => ({ id: r.id, name: r.name, amount: 0 }));
   return totals.rows.map((r) => ({
     id: r.id,
     name: r.name,
-    amount: (r.cost / totals.baseCost) * totals.recommendedBudget,
+    amount: (r.cost / totals.baseCost) * targetTotal,
   }));
 }
 
@@ -319,9 +375,9 @@ export const PAYMENT_SPLIT_PRESETS: PaymentSplitPreset[] = [
     name: "Standard",
     description: "Works for most 4–12 week engagements with one clear midpoint milestone.",
     entries: [
-      { label: "Deposit (on signing)", pct: 30 },
-      { label: "Midpoint milestone", pct: 40 },
-      { label: "Final payment (on delivery)", pct: 30 },
+      { label: "Deposit (On Signing)", pct: 30 },
+      { label: "Midpoint Milestone", pct: 40 },
+      { label: "Final Payment (On Delivery)", pct: 30 },
     ],
   },
   {
@@ -329,65 +385,62 @@ export const PAYMENT_SPLIT_PRESETS: PaymentSplitPreset[] = [
     name: "Deposit & Delivery",
     description: "A simple two-part split for short engagements (under a month) or established clients.",
     entries: [
-      { label: "Deposit (on signing)", pct: 50 },
-      { label: "Final payment (on delivery)", pct: 50 },
+      { label: "Deposit (On Signing)", pct: 50 },
+      { label: "Final Payment (On Delivery)", pct: 50 },
     ],
   },
   {
     id: "upfront",
     name: "Full Upfront",
     description: "Zero collection risk. Best for small, low-cost work or trusted repeat clients.",
-    entries: [{ label: "Full payment (on signing)", pct: 100 }],
+    entries: [{ label: "Full Payment (On Signing)", pct: 100 }],
+  },
+  {
+    id: "on-completion",
+    name: "Payment on Completion",
+    description: "A single invoice once the work is delivered. All collection risk sits with you — best for short, trusted, or low-cost engagements.",
+    entries: [{ label: "Full Payment (On Delivery)", pct: 100 }],
   },
   {
     id: "quarterly",
     name: "Quarterly",
     description: "Four even installments for longer, multi-phase engagements (3+ months).",
     entries: [
-      { label: "Payment 1 (on signing)", pct: 25 },
+      { label: "Payment 1 (On Signing)", pct: 25 },
       { label: "Payment 2", pct: 25 },
       { label: "Payment 3", pct: 25 },
-      { label: "Payment 4 (on delivery)", pct: 25 },
+      { label: "Payment 4 (On Delivery)", pct: 25 },
     ],
   },
 ];
 
 export const DEFAULT_PAYMENT_SPLIT: PaymentSplitEntry[] = PAYMENT_SPLIT_PRESETS[0].entries;
 
-// Time & Materials bills for actual time worked, so a fixed-fee-style
-// deposit/milestone structure doesn't fit as naturally as it does for VBP.
-// These lean toward ongoing, usage-based billing instead, with "monthly in
+// These apply to Time & Materials' variable/actuals mode: the final number
+// isn't agreed in advance, so options lean toward ongoing, usage-based
+// billing rather than a deposit/milestone structure, with "monthly in
 // arrears" (pure pay-as-you-go, no deposit) as the T&M-idiomatic default.
+// A 50/50 split or a single payment on completion implies a total agreed
+// in advance, which belongs to fixed-price mode instead — that mode reuses
+// PAYMENT_SPLIT_PRESETS above rather than a T&M-specific list, since a
+// fixed-price T&M quote and a VBP quote are structurally identical at the
+// payment-schedule stage (see specs/time-materials.md, "Fixed-price mode").
 export const TM_PAYMENT_SPLIT_PRESETS: PaymentSplitPreset[] = [
   {
     id: "monthly-arrears",
     name: "Monthly in Arrears",
     description: "The T&M default: invoice monthly for actual hours worked. No deposit, no over- or under-billing.",
-    entries: [{ label: "Billed monthly in arrears (actuals)", pct: 100 }],
+    entries: [{ label: "Billed Monthly in Arrears (Actuals)", pct: 100 }],
   },
   {
     id: "deposit-monthly",
     name: "Deposit & Monthly",
-    description: "A deposit for commitment and cash flow, then invoice monthly in arrears for the rest as work happens.",
+    description:
+      "A deposit for commitment and cash flow, credited against your final invoice once the engagement wraps — then bill monthly in arrears for the rest as work happens.",
     entries: [
-      { label: "Deposit (on signing)", pct: 20 },
-      { label: "Remaining balance, billed monthly in arrears", pct: 80 },
+      { label: "Deposit (On Signing, Credited Against Final Invoice)", pct: 20 },
+      { label: "Remaining Balance, Billed Monthly in Arrears", pct: 80 },
     ],
-  },
-  {
-    id: "deposit-final",
-    name: "Deposit & Final",
-    description: "A simple two-part split: deposit on signing, balance when the engagement completes.",
-    entries: [
-      { label: "Deposit (on signing)", pct: 50 },
-      { label: "Final payment (on completion)", pct: 50 },
-    ],
-  },
-  {
-    id: "full-completion",
-    name: "Full at Completion",
-    description: "One invoice once the engagement wraps up. Best for short, well-scoped work with a trusted client.",
-    entries: [{ label: "Full payment (on completion)", pct: 100 }],
   },
 ];
 

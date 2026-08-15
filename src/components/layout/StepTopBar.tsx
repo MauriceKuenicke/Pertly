@@ -10,12 +10,20 @@ const STEPS: { n: 1 | 2 | 3 | 4; label: string }[] = [
 interface StepTopBarProps {
   breadcrumbLabel: string;
   currentStep: 1 | 2 | 3 | 4;
+  furthestStep: 1 | 2 | 3 | 4;
   onBreadcrumbClick: () => void;
   onStepClick?: (step: 1 | 2 | 3 | 4) => void;
   savedLabel?: string;
 }
 
-export function StepTopBar({ breadcrumbLabel, currentStep, onBreadcrumbClick, onStepClick, savedLabel }: StepTopBarProps) {
+export function StepTopBar({
+  breadcrumbLabel,
+  currentStep,
+  furthestStep,
+  onBreadcrumbClick,
+  onStepClick,
+  savedLabel,
+}: StepTopBarProps) {
   return (
     <div className={styles.bar}>
       <div className={styles.breadcrumb}>
@@ -28,9 +36,9 @@ export function StepTopBar({ breadcrumbLabel, currentStep, onBreadcrumbClick, on
 
       <div className={styles.steps}>
         {STEPS.map((step, i) => {
-          const isDone = step.n < currentStep;
+          const isDone = step.n <= furthestStep && step.n !== currentStep;
           const isActive = step.n === currentStep;
-          const clickable = Boolean(onStepClick) && step.n <= currentStep;
+          const clickable = Boolean(onStepClick) && step.n <= furthestStep;
           return (
             <div className={styles.stepGroup} key={step.n}>
               {i > 0 && <span className={styles.connector} />}

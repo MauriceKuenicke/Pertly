@@ -1,6 +1,7 @@
 import { WizardLayout, FooterBar } from "../../components/layout";
-import { Button, Card, Field } from "../../components/ui";
-import { CURRENCY_CODES, currencySymbol, formatMoney } from "../../lib/currency";
+import { Button, Card, Field, Slider } from "../../components/ui";
+import { DEFAULT_PAYMENT_SPLIT, TM_DEFAULT_PAYMENT_SPLIT } from "../../lib/calc";
+import { CURRENCY_CODES, currencySymbol } from "../../lib/currency";
 import { createId } from "../../lib/id";
 import type { ExpenseItem } from "../../types/estimate";
 import type { WizardScreenProps } from "../wizardProps";
@@ -90,7 +91,7 @@ function EditableExpenseList({
         onClick={() => onChange([...items, { id: createId(), label: "", amount: 0 }])}
       >
         <span className={styles.addPlus}>+</span>
-        Add expense
+        Add Expense
       </button>
     </div>
   );
@@ -109,8 +110,6 @@ export function AssumptionsScreen({
 }: WizardScreenProps) {
   const { projectDetails, rateEffort, overheadRisk, pricingMethod, timeMaterials } = estimate;
 
-  const effectiveDayRate = rateEffort.dayRate * (1 + overheadRisk.overheadPct / 100);
-  const overheadAmount = rateEffort.dayRate * (overheadRisk.overheadPct / 100);
   const canContinue = projectDetails.estimateName.trim().length > 0;
 
   const setRateMode = (nextUseRoleBasedPricing: boolean) => {
@@ -126,6 +125,21 @@ export function AssumptionsScreen({
               pkg.roleId ? pkg : { ...pkg, roleId: e.timeMaterials.roles[0]?.id },
             )
           : e.timeMaterials.workPackages,
+      },
+    }));
+  };
+
+  const setPricingStructure = (nextIsFixedPrice: boolean) => {
+    onChange((e) => ({
+      ...e,
+      timeMaterials: {
+        ...e.timeMaterials,
+        isFixedPrice: nextIsFixedPrice,
+        // The two modes draw from different preset lists (see calc.ts), so
+        // a split picked under the old mode won't match anything in the
+        // new one. Reset to that mode's default rather than leaving a
+        // stale, unhighlighted split behind.
+        paymentSplit: (nextIsFixedPrice ? DEFAULT_PAYMENT_SPLIT : TM_DEFAULT_PAYMENT_SPLIT).map((entry) => ({ ...entry })),
       },
     }));
   };
@@ -166,6 +180,7 @@ export function AssumptionsScreen({
       windowTitle={windowTitleFor(estimate)}
       breadcrumbLabel={breadcrumbLabelFor(estimate)}
       currentStep={1}
+      furthestStep={estimate.furthestStep}
       savedLabel={savedLabel}
       onGoToList={onGoToList}
       onNewEstimate={onNewEstimate}
@@ -175,7 +190,7 @@ export function AssumptionsScreen({
         <FooterBar
           left={
             <Button variant="ghost" onClick={onSaveDraft}>
-              Save as draft
+              Save As Draft
             </Button>
           }
           right={
@@ -192,12 +207,12 @@ export function AssumptionsScreen({
       <div className={styles.layout}>
         <div className={styles.formColumn}>
           <div className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Let's set up your estimate</h1>
+            <h1 className={styles.pageTitle}>Let's Set Up Your Estimate</h1>
             <p className={styles.pageSubtitle}>These numbers drive every calculation below, and you can revisit them any time.</p>
           </div>
 
           <Card
-            title="Pricing method"
+            title="Pricing Method"
             description="Rule of thumb: measurable business impact → value-based. Exploratory or time-boxed work → time & materials."
           >
             <div className={styles.methodRow}>
@@ -235,16 +250,16 @@ export function AssumptionsScreen({
             </div>
           </Card>
 
-          <Card title="Project details">
+          <Card title="Project Details">
             <Field
-              label="Estimate name"
+              label="Estimate Name"
               value={projectDetails.estimateName}
               placeholder="Acme Corp Website Redesign"
               onChange={(e) => onChange((est) => ({ ...est, projectDetails: { ...est.projectDetails, estimateName: e.target.value } }))}
             />
             <div className={styles.row2}>
               <Field
-                label="Client name"
+                label="Client Name"
                 value={projectDetails.clientName}
                 placeholder="Acme Corporation"
                 onChange={(e) => onChange((est) => ({ ...est, projectDetails: { ...est.projectDetails, clientName: e.target.value } }))}
@@ -265,7 +280,7 @@ export function AssumptionsScreen({
               </label>
             </div>
             <Field
-              label="Your name"
+              label="Your Name"
               value={projectDetails.preparerName}
               placeholder="e.g. Jane Doe"
               helpText="Shown as the preparer on the proposal document."
@@ -275,21 +290,21 @@ export function AssumptionsScreen({
 
           {pricingMethod === "value-based" ? (
             <Card
-              title="Rate & effort"
+              title="Rate & Effort"
               description="Your billing rate and the effort unit used across this estimate."
             >
               <div className={styles.row2}>
                 <Field
-                  label="Day rate"
+                  label="Day Rate"
                   type="number"
                   min={0}
                   prefix={currencySymbol(projectDetails.currency)}
                   value={rateEffort.dayRate}
-                  helpText="Your single freelance rate. It drives every cost below."
+                  helpText="Your single daily rate. It drives the work package's cost."
                   onChange={(e) => onChange((est) => ({ ...est, rateEffort: { ...est.rateEffort, dayRate: Number(e.target.value) } }))}
                 />
                 <Field
-                  label="Working hours / day"
+                  label="Working Hours / Day"
                   type="number"
                   min={1}
                   max={24}
@@ -302,7 +317,7 @@ export function AssumptionsScreen({
               </div>
             </Card>
           ) : (
-            <Card title="Billing rate" description="Bill every work package the same, or assign a day rate per role.">
+            <Card title="Billing Rate" description="Bill every work package the same, or assign a day rate per role.">
               <div className={styles.methodRow}>
                 <button
                   type="button"
@@ -311,7 +326,7 @@ export function AssumptionsScreen({
                 >
                   <div className={styles.methodHead}>
                     <span className={`${styles.radio} ${!timeMaterials.useRoleBasedPricing ? styles.radioActive : ""}`} />
-                    <span className={styles.methodName}>Blended rate</span>
+                    <span className={styles.methodName}>Blended Rate</span>
                   </div>
                   <p className={styles.methodDesc}>Every work package bills at the same day rate.</p>
                 </button>
@@ -323,7 +338,7 @@ export function AssumptionsScreen({
                 >
                   <div className={styles.methodHead}>
                     <span className={`${styles.radio} ${timeMaterials.useRoleBasedPricing ? styles.radioActive : ""}`} />
-                    <span className={styles.methodName}>Role-based rates</span>
+                    <span className={styles.methodName}>Role-Based Rates</span>
                   </div>
                   <p className={styles.methodDesc}>Assign each work package to a role with its own day rate.</p>
                 </button>
@@ -331,12 +346,12 @@ export function AssumptionsScreen({
 
               {!timeMaterials.useRoleBasedPricing ? (
                 <Field
-                  label="Day rate"
+                  label="Day Rate"
                   type="number"
                   min={0}
                   prefix={currencySymbol(projectDetails.currency)}
                   value={rateEffort.dayRate}
-                  helpText="Your single freelance rate. It drives every work package's cost below."
+                  helpText="Your single daily rate. It drives the work package's cost."
                   onChange={(e) => onChange((est) => ({ ...est, rateEffort: { ...est.rateEffort, dayRate: Number(e.target.value) } }))}
                 />
               ) : (
@@ -370,13 +385,13 @@ export function AssumptionsScreen({
                   ))}
                   <button type="button" className={styles.addRow} onClick={addRole}>
                     <span className={styles.addPlus}>+</span>
-                    Add role
+                    Add Role
                   </button>
                 </div>
               )}
 
               <Field
-                label="Working hours / day"
+                label="Working Hours / Day"
                 type="number"
                 min={1}
                 max={24}
@@ -389,13 +404,59 @@ export function AssumptionsScreen({
             </Card>
           )}
 
+          {pricingMethod === "time-materials" && (
+            <Card title="Pricing Structure" description="How this engagement gets billed.">
+              <div className={styles.methodRow}>
+                <button
+                  type="button"
+                  className={`${styles.methodOption} ${!timeMaterials.isFixedPrice ? styles.methodOptionActive : ""}`}
+                  onClick={() => setPricingStructure(false)}
+                >
+                  <div className={styles.methodHead}>
+                    <span className={`${styles.radio} ${!timeMaterials.isFixedPrice ? styles.radioActive : ""}`} />
+                    <span className={styles.methodName}>Variable</span>
+                  </div>
+                  <p className={styles.methodDesc}>Bill for actual time worked. The quote is an estimate, not a promise.</p>
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.methodOption} ${timeMaterials.isFixedPrice ? styles.methodOptionActive : ""}`}
+                  onClick={() => setPricingStructure(true)}
+                >
+                  <div className={styles.methodHead}>
+                    <span className={`${styles.radio} ${timeMaterials.isFixedPrice ? styles.radioActive : ""}`} />
+                    <span className={styles.methodName}>Fixed Price</span>
+                  </div>
+                  <p className={styles.methodDesc}>
+                    Agree a single price upfront, built from your risk coverage below. You absorb any overrun.
+                  </p>
+                </button>
+              </div>
+              {timeMaterials.isFixedPrice && (
+                <Slider
+                  label="Risk Coverage"
+                  helpText="How much of the optimistic–pessimistic range to price in. 0% quotes the likely-case budget; 100% quotes the full pessimistic-case ceiling. 25–40% is a conservative default that leans toward the likely case while still absorbing some of the risk."
+                  value={timeMaterials.fixedPriceRiskCoveragePct}
+                  min={0}
+                  max={100}
+                  step={5}
+                  formatValue={(v) => `${v}%`}
+                  onChange={(v) =>
+                    onChange((e) => ({ ...e, timeMaterials: { ...e.timeMaterials, fixedPriceRiskCoveragePct: v } }))
+                  }
+                />
+              )}
+            </Card>
+          )}
+
           <Card
-            title="Overhead & risk"
+            title="Overhead & Risk"
             description="Non-billable effort and buffer for estimation uncertainty."
           >
             <div className={styles.row2}>
               <Field
-                label="Overhead uplift"
+                label="Overhead Uplift"
                 type="number"
                 min={0}
                 max={100}
@@ -405,7 +466,7 @@ export function AssumptionsScreen({
                 onChange={(e) => onChange((est) => ({ ...est, overheadRisk: { ...est.overheadRisk, overheadPct: Number(e.target.value) } }))}
               />
               <Field
-                label="Contingency buffer"
+                label="Contingency Buffer"
                 type="number"
                 min={0}
                 max={100}
@@ -420,7 +481,7 @@ export function AssumptionsScreen({
           </Card>
 
           <Card
-            title="Assumptions & exclusions"
+            title="Assumptions & Exclusions"
             description="What this quote assumes and what's out of scope. Shown to the client automatically."
           >
             <div className={styles.section}>
@@ -428,7 +489,7 @@ export function AssumptionsScreen({
               <EditableList
                 items={estimate.assumptions}
                 onChange={(items) => onChange((est) => ({ ...est, assumptions: items }))}
-                addLabel="Add assumption"
+                addLabel="Add Assumption"
               />
             </div>
             <div className={styles.section}>
@@ -436,13 +497,13 @@ export function AssumptionsScreen({
               <EditableList
                 items={estimate.exclusions}
                 onChange={(items) => onChange((est) => ({ ...est, exclusions: items }))}
-                addLabel="Add exclusion"
+                addLabel="Add Exclusion"
               />
             </div>
           </Card>
 
           <Card
-            title="Pass-through expenses"
+            title="Pass-Through Expenses"
             description="Hardware, licenses, travel, or other costs billed at cost, shown separately from your fee."
           >
             <EditableExpenseList
@@ -451,46 +512,6 @@ export function AssumptionsScreen({
               currency={projectDetails.currency}
             />
           </Card>
-        </div>
-
-        <div className={styles.rightPanel}>
-          <div className={styles.previewCard}>
-            <div className={styles.previewHead}>
-              <span className={styles.previewDot} />
-              <span className={styles.previewTitle}>Live preview</span>
-            </div>
-            <p className={styles.previewSubtitle}>Recalculates instantly as you edit the fields on the left. Nothing to break.</p>
-            <div className={styles.divider} />
-            <div className={styles.rateBlock}>
-              <span className={styles.rateBlockLabel}>EFFECTIVE DAY RATE</span>
-              <div className={styles.rateRow}>
-                <span>Day rate</span>
-                <span>{formatMoney(rateEffort.dayRate, projectDetails.currency)}</span>
-              </div>
-              <div className={styles.rateRow}>
-                <span>+ Overhead ({overheadRisk.overheadPct}%)</span>
-                <span>{formatMoney(overheadAmount, projectDetails.currency)}</span>
-              </div>
-              <div className={styles.divider} />
-              <div className={styles.rateTotalRow}>
-                <span>Effective / day</span>
-                <span className={styles.rateTotal}>{formatMoney(effectiveDayRate, projectDetails.currency)}</span>
-              </div>
-            </div>
-            <div className={styles.calloutBox}>
-              Recommended budget = subtotal + {overheadRisk.contingencyPct}% contingency. Cap is set from the pessimistic case
-              per company policy.
-            </div>
-            <div className={styles.divider} />
-            <details className={styles.pertDetails}>
-              <summary className={styles.pertLink}>How three-point (PERT) estimation works</summary>
-              <p className={styles.pertInfo}>
-                Each work package gets an Optimistic, Most-likely and Pessimistic estimate. Expected duration is
-                (O + 4×Likely + P) ÷ 6, and uncertainty (σ) is (P − O) ÷ 6, a fast, defensible way to turn a range into a
-                single number.
-              </p>
-            </details>
-          </div>
         </div>
       </div>
     </WizardLayout>

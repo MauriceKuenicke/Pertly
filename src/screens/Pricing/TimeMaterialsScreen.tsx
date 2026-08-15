@@ -23,6 +23,7 @@ export function TimeMaterialsScreen({
   const totals = calcTimeMaterials(timeMaterials, estimate.rateEffort, estimate.overheadRisk);
   const roleBreakdown = calcRoleBreakdown(timeMaterials, estimate.rateEffort);
   const currency = estimate.projectDetails.currency;
+  const canContinue = totals.baseCost > 0;
 
   const updateRow = (
     id: string,
@@ -44,6 +45,7 @@ export function TimeMaterialsScreen({
       windowTitle={windowTitleFor(estimate)}
       breadcrumbLabel={breadcrumbLabelFor(estimate)}
       currentStep={2}
+      furthestStep={estimate.furthestStep}
       savedLabel={savedLabel}
       onGoToList={onGoToList}
       onNewEstimate={onNewEstimate}
@@ -58,8 +60,11 @@ export function TimeMaterialsScreen({
           }
           right={
             <>
+              {!canContinue && (
+                <span className={styles.warnText}>Add at least one priced work package to continue</span>
+              )}
               <span className={styles.stepText}>Step 2 of 4</span>
-              <Button variant="primary" onClick={onNext}>
+              <Button variant="primary" disabled={!canContinue} onClick={onNext}>
                 Continue to Summary →
               </Button>
             </>
@@ -70,12 +75,12 @@ export function TimeMaterialsScreen({
       <div className={styles.layout}>
         <div className={styles.formColumn}>
           <div className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Break down the work</h1>
+            <h1 className={styles.pageTitle}>Break Down the Work</h1>
             <p className={styles.pageSubtitle}>Split the project into deliverables. Three numbers per row is all PERT needs.</p>
           </div>
 
           <Card
-            title="Work breakdown"
+            title="Work Breakdown"
             description="Enter Optimistic / Most likely / Pessimistic days per package. Expected and σ calculate automatically (PERT)."
             info="Three-point (PERT) estimation turns a range into one defensible number per deliverable. It matters because a single-guess estimate hides your uncertainty, and this makes it explicit, combining it mathematically into one confidence interval for the whole project."
           >
@@ -161,9 +166,9 @@ export function TimeMaterialsScreen({
                 <span />
                 <span>Total</span>
                 {useRoleBasedPricing && <span />}
-                <span className={styles.colNum}>{totals.totalOptimisticDays}</span>
-                <span className={styles.colNum}>{totals.totalLikelyDays}</span>
-                <span className={styles.colNum}>{totals.totalPessimisticDays}</span>
+                <span className={styles.colNum}>{formatDays(totals.totalOptimisticDays)}</span>
+                <span className={styles.colNum}>{formatDays(totals.totalLikelyDays)}</span>
+                <span className={styles.colNum}>{formatDays(totals.totalPessimisticDays)}</span>
                 <span className={styles.colNum}>{formatDays(totals.expectedDays)} d</span>
                 <span className={styles.colNum}>±{formatDays(totals.sigmaDays, 2)}</span>
                 <span className={styles.colCost}>{formatMoney(totals.baseCost, currency)}</span>
@@ -193,13 +198,13 @@ export function TimeMaterialsScreen({
                 }))
               }
             >
-              + Add work package
+              + Add Work Package
             </button>
           </Card>
         </div>
 
         <div className={styles.rightPanel}>
-          <Card title="Estimate summary" description="How the recommended budget is calculated, step by step.">
+          <Card title="Estimate Summary" description="How the recommended budget is calculated, step by step.">
             <div className={styles.bigNumber}>
               <span className={styles.bigNumberValue}>{formatDays(totals.expectedDays)}</span>
               <span className={styles.bigNumberLabel}>expected days</span>
@@ -209,36 +214,66 @@ export function TimeMaterialsScreen({
             </p>
             <div className={styles.divider} />
             <div className={styles.summaryRow}>
-              <span>Base cost (expected)</span>
+              <span>Base Cost (Expected)</span>
               <span>{formatMoney(totals.baseCost, currency)}</span>
             </div>
+            {timeMaterials.isFixedPrice && (
+              <>
+                <div className={styles.summaryRow}>
+                  <span>
+                    + Risk Coverage ({timeMaterials.fixedPriceRiskCoveragePct}% of {formatMoney(totals.baseCost, currency)}–
+                    {formatMoney(totals.pessimisticCost, currency)})
+                  </span>
+                  <span>{formatMoney(totals.riskCoverageAmount, currency)}</span>
+                </div>
+                <div className={styles.summaryRowSub}>
+                  <span>Risk-Adjusted Cost</span>
+                  <span>{formatMoney(totals.riskAdjustedCost, currency)}</span>
+                </div>
+              </>
+            )}
             <div className={styles.summaryRow}>
               <span>+ Overhead ({estimate.overheadRisk.overheadPct}%)</span>
-              <span>{formatMoney(totals.overheadAmount, currency)}</span>
+              <span>
+                {formatMoney(timeMaterials.isFixedPrice ? totals.riskAdjustedOverheadAmount : totals.overheadAmount, currency)}
+              </span>
             </div>
             <div className={styles.summaryRowSub}>
-              <span>Delivery subtotal</span>
-              <span>{formatMoney(totals.deliverySubtotal, currency)}</span>
+              <span>Delivery Subtotal</span>
+              <span>
+                {formatMoney(timeMaterials.isFixedPrice ? totals.riskAdjustedSubtotal : totals.deliverySubtotal, currency)}
+              </span>
             </div>
             <div className={styles.summaryRow}>
               <span>+ Contingency ({estimate.overheadRisk.contingencyPct}%)</span>
-              <span>{formatMoney(totals.contingencyAmount, currency)}</span>
+              <span>
+                {formatMoney(
+                  timeMaterials.isFixedPrice ? totals.riskAdjustedContingencyAmount : totals.contingencyAmount,
+                  currency,
+                )}
+              </span>
             </div>
             <div className={styles.divider} />
             <div className={styles.summaryRowBig}>
-              <span>Recommended budget</span>
-              <span>{formatMoney(totals.recommendedBudget, currency)}</span>
+              <span>{timeMaterials.isFixedPrice ? "Fixed Price" : "Recommended Budget"}</span>
+              <span>{formatMoney(timeMaterials.isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget, currency)}</span>
             </div>
+            {timeMaterials.isFixedPrice && (
+              <div className={styles.summaryRow}>
+                <span>Expected Cost (without risk)</span>
+                <span>{formatMoney(totals.recommendedBudget, currency)}</span>
+              </div>
+            )}
             <div className={styles.divider} />
             <p className={styles.footnote}>
-              Uncertainty is combined with root-sum-of-squares across packages, not simple addition, so total risk isn't
-              overstated. Overhead covers non-billable effort; contingency buffers estimation uncertainty. Both are set on
-              the Assumptions step.
+              {timeMaterials.isFixedPrice
+                ? `Risk coverage picks a point between the expected cost and the full pessimistic-case cost, before overhead and contingency are applied to that adjusted base — it's not a percentage of the expected cost itself.`
+                : "Uncertainty is combined with root-sum-of-squares across packages, not simple addition, so total risk isn't overstated. Overhead covers non-billable effort; contingency buffers estimation uncertainty. Both are set on the Assumptions step."}
             </p>
           </Card>
 
           {roleBreakdown.length > 0 && (
-            <Card title="Rate split by role" description="Where the base cost above comes from.">
+            <Card title="Rate Split by Role" description="Where the base cost above comes from.">
               <div className={styles.roleBreakdownList}>
                 {roleBreakdown.map((row) => (
                   <div className={styles.roleBreakdownRow} key={row.roleId}>

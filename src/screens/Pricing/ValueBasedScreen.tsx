@@ -87,6 +87,7 @@ export function ValueBasedScreen({
       windowTitle={windowTitleFor(estimate)}
       breadcrumbLabel={breadcrumbLabelFor(estimate)}
       currentStep={2}
+      furthestStep={estimate.furthestStep}
       savedLabel={savedLabel}
       onGoToList={onGoToList}
       onNewEstimate={onNewEstimate}
@@ -101,7 +102,7 @@ export function ValueBasedScreen({
           }
           right={
             <>
-              <span className={styles.stepText}>Step 2 of 4: Value-based pricing</span>
+              <span className={styles.stepText}>Step 2 of 4: Value-Based Pricing</span>
               <Button variant="primary" onClick={onNext}>
                 Continue to Summary →
               </Button>
@@ -113,19 +114,19 @@ export function ValueBasedScreen({
       <div className={styles.layout}>
         <div className={styles.formColumn}>
           <div className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Price by the value you create</h1>
+            <h1 className={styles.pageTitle}>Price by the Value You Create</h1>
             <p className={styles.pageSubtitle}>
               For projects where the business impact is quantifiable, the fee is a share of value delivered, not hours spent.
             </p>
           </div>
 
           <Card
-            title="Step 1: Quantify the problem"
+            title="Step 1: Quantify the Problem"
             description="What does this problem cost the client per year?"
             info="This is the foundation of the whole value-based fee. Everything downstream is a percentage of this number, so under-count it here and every later number is quietly too small."
           >
             <div className={styles.hintCard}>
-              <span className={styles.hintTitle}>💡 Ask the client these 3 questions</span>
+              <span className={styles.hintTitle}>💡 Ask the Client These 3 Questions</span>
               <ol className={styles.hintList}>
                 <li>What does it cost you to NOT solve this in the next 12 months?</li>
                 <li>What would even a 10% improvement mean for your business?</li>
@@ -153,18 +154,18 @@ export function ValueBasedScreen({
             </div>
 
             <div className={styles.problemTotal}>
-              <span>Annual problem cost</span>
+              <span>Annual Problem Cost</span>
               <span className={styles.problemTotalValue}>{formatMoney(totals.annualProblemCost, currency)}</span>
             </div>
           </Card>
 
           <Card
-            title="Step 2: Estimate value potential"
+            title="Step 2: Estimate Value Potential"
             description="Drag to set a conservative improvement estimate. Moderate and aggressive scale automatically."
             info="Translates the raw problem cost into a realistic range of what your work could recover. The conservative case is what you'll quote from; moderate and aggressive exist to show the upside without overselling the ask."
           >
             <Slider
-              label="Conservative improvement"
+              label="Conservative Improvement"
               helpText="20–40% is a defensible starting point for most engagements. Go lower if the client is skeptical, higher only with strong proof."
               value={valueBased.conservativePct}
               min={5}
@@ -192,7 +193,7 @@ export function ValueBasedScreen({
           </Card>
 
           <Card
-            title="Step 3: Derive the fee"
+            title="Step 3: Derive the Fee"
             description="Fee = Conservative value × Attribution × Value Capture Rate"
             info="Attribution and value capture rate stop you claiming the full value as your fee. They account for what the client's own team, tools, or timing contributed, and what a fair outside-partner slice looks like."
           >
@@ -217,8 +218,8 @@ export function ValueBasedScreen({
           </Card>
 
           <Card
-            title="Step 4: Scope the engagement"
-            description="Map the work to service lines, then package it as a tiered proposal. Prices start from the derived fee above."
+            title="Step 4: Scope the Engagement"
+            description="Package it as a tiered proposal. Prices start from the derived fee above."
             info="Packaging the same fee into tiers gives the client a choice instead of a single yes/no, which measurably increases close rates. Tier pricing starts from the derived fee so the numbers stay internally consistent."
           >
             <div className={styles.tiersRow}>
@@ -272,7 +273,7 @@ export function ValueBasedScreen({
                     className={styles.setRecommended}
                     onClick={() => onChange((e) => ({ ...e, valueBased: { ...e.valueBased, recommendedTierId: tier.id } }))}
                   >
-                    {tier.id === valueBased.recommendedTierId ? "Recommended" : "Make recommended"}
+                    {tier.id === valueBased.recommendedTierId ? "Recommended" : "Make Recommended"}
                   </button>
                 </div>
               ))}
@@ -281,9 +282,9 @@ export function ValueBasedScreen({
         </div>
 
         <div className={styles.rightPanel}>
-          <Card title="Fee derivation">
+          <Card title="Fee Derivation">
             <div className={styles.feeRow}>
-              <span>Conservative annual value</span>
+              <span>Conservative Annual Value</span>
               <span>{formatMoney(totals.conservativeValue, currency)}</span>
             </div>
             <div className={styles.feeRow}>
@@ -296,7 +297,7 @@ export function ValueBasedScreen({
             </div>
             <div className={styles.divider} />
             <div className={styles.feeTotalRow}>
-              <span>Recommended fee</span>
+              <span>Recommended Fee</span>
               <span className={styles.feeTotalValue}>{formatMoney(totals.recommendedFee, currency)}</span>
             </div>
             <div className={`${styles.roiBadge} ${roiOnTarget ? styles.roiBadgeGood : styles.roiBadgeWarn}`}>

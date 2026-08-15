@@ -43,10 +43,10 @@
 .row,
 .totalRow {
   display: grid;
-  grid-template-columns: 20px minmax(140px, 2fr) 46px 50px 46px 62px 50px 74px 20px;
+  grid-template-columns: 20px minmax(140px, 2fr) 56px 60px 56px 62px 50px 74px 20px;
   align-items: center;
   gap: 6px;
-  min-width: 560px;
+  min-width: 590px;
 }
 
 /* Role column adds a select between the name and the OPT/LIKELY/PESS days.
@@ -55,8 +55,8 @@
 .headerRow.roleColsOn,
 .row.roleColsOn,
 .totalRow.roleColsOn {
-  grid-template-columns: 20px minmax(90px, 1.3fr) 118px 40px 44px 40px 56px 44px 68px 20px;
-  min-width: 600px;
+  grid-template-columns: 20px minmax(90px, 1.3fr) 118px 48px 52px 48px 56px 44px 68px 20px;
+  min-width: 624px;
 }
 
 .headerRow {
@@ -113,6 +113,9 @@
 
 .nameInput {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   border: none;
   border-bottom: 1px solid transparent;
   background: transparent;
@@ -128,16 +131,22 @@
 .numInput {
   width: 100%;
   min-width: 0;
-  padding: 5px 6px;
+  padding: 5px 4px;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   text-align: center;
   font-size: 13px;
   color: var(--text-primary);
+  -moz-appearance: textfield;
 }
 .numInput:focus {
   outline: none;
   border-color: var(--brand-primary);
+}
+.numInput::-webkit-outer-spin-button,
+.numInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .roleSelect {
@@ -250,6 +259,12 @@
   font-size: 12.5px;
   font-weight: 500;
   color: var(--text-tertiary);
+}
+
+.warnText {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--semantic-danger);
 }
 
 /* Rate split by role (right panel) */

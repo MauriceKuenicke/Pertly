@@ -15,6 +15,10 @@ function estimateHeadline(estimate: Estimate): number {
   return calcValueBased(estimate.valueBased).recommendedFee;
 }
 
+function pricingMethodLabel(estimate: Estimate): string {
+  return estimate.pricingMethod === "time-materials" ? "Time & Materials" : "Value-Based Pricing";
+}
+
 function relativeDate(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diffMs / 60000);
@@ -42,6 +46,7 @@ export function AllEstimatesScreen() {
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Estimate | null>(null);
 
   useEffect(() => {
     if (!openMenuId) return;
@@ -82,7 +87,7 @@ export function AllEstimatesScreen() {
                 Import
               </Button>
               <Button variant="primary" onClick={createAndOpenEstimate}>
-                + New estimate
+                + New Estimate
               </Button>
             </div>
           </div>
@@ -90,10 +95,10 @@ export function AllEstimatesScreen() {
           <div className={styles.body}>
             {estimates.length === 0 ? (
               <div className={styles.empty}>
-                <p className={styles.emptyTitle}>No estimates yet</p>
+                <p className={styles.emptyTitle}>No Estimates Yet</p>
                 <p className={styles.emptyText}>Create your first estimate to start pricing a project.</p>
                 <Button variant="primary" onClick={createAndOpenEstimate}>
-                  + New estimate
+                  + New Estimate
                 </Button>
               </div>
             ) : (
@@ -148,10 +153,7 @@ export function AllEstimatesScreen() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setOpenMenuId(null);
-                                  const name = estimate.projectDetails.estimateName || "this estimate";
-                                  if (window.confirm(`Delete "${name}"? This can't be undone.`)) {
-                                    deleteEstimate(estimate.id);
-                                  }
+                                  setDeleteTarget(estimate);
                                 }}
                               >
                                 Delete
@@ -161,7 +163,14 @@ export function AllEstimatesScreen() {
                         </div>
                       </div>
                     </div>
-                    <span className={styles.cardClient}>{estimate.projectDetails.clientName || "No client set"}</span>
+                    <div className={styles.cardMetaRow}>
+                      <span className={styles.cardClient}>{estimate.projectDetails.clientName || "No client set"}</span>
+                      <span
+                        className={`${styles.methodTag} ${estimate.pricingMethod === "time-materials" ? styles.methodTagNeutral : styles.methodTagBrand}`}
+                      >
+                        {pricingMethodLabel(estimate)}
+                      </span>
+                    </div>
                     <div className={styles.cardFooter}>
                       <span className={styles.cardAmount}>
                         {formatMoney(estimateHeadline(estimate), estimate.projectDetails.currency)}
@@ -178,7 +187,7 @@ export function AllEstimatesScreen() {
 
       {importOpen && (
         <Modal
-          title="Import an estimate"
+          title="Import an Estimate"
           description="Paste a share code from another Pertly estimate. It's imported as a new, editable estimate; nothing about the original is changed."
           onClose={closeImportModal}
         >
@@ -194,7 +203,30 @@ export function AllEstimatesScreen() {
           {importError && <p className={styles.importError}>{importError}</p>}
           <div className={styles.importActions}>
             <Button variant="primary" disabled={!importText.trim()} onClick={handleImport}>
-              Import estimate
+              Import Estimate
+            </Button>
+          </div>
+        </Modal>
+      )}
+
+      {deleteTarget && (
+        <Modal
+          title="Delete This Estimate?"
+          description={`"${deleteTarget.projectDetails.estimateName || "This estimate"}" will be permanently deleted. This can't be undone.`}
+          onClose={() => setDeleteTarget(null)}
+        >
+          <div className={styles.importActions}>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                deleteEstimate(deleteTarget.id);
+                setDeleteTarget(null);
+              }}
+            >
+              Delete
             </Button>
           </div>
         </Modal>

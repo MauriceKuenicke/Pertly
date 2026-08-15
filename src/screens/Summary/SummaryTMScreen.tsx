@@ -5,6 +5,7 @@ import {
   calcRoleBreakdown,
   calcTimeMaterials,
   matchingPaymentSplitPresetId,
+  PAYMENT_SPLIT_PRESETS,
   sumExpenses,
   TM_PAYMENT_SPLIT_PRESETS,
   type PaymentSplitPreset,
@@ -31,6 +32,27 @@ const GOVERNANCE = [
   },
 ];
 
+// Fixed-price mode has no cap to monitor and no "just bill more" escape
+// valve, so the two items that assumed ongoing actuals billing are
+// reworded around change-order discipline instead (see
+// specs/time-materials.md, "Fixed-price mode").
+const GOVERNANCE_FIXED_PRICE = [
+  {
+    title: "Change-order discipline",
+    body: "Extra scope beyond this estimate requires a written change order and a re-quoted fixed price before work starts — there's no cap left to bill up to, so nothing gets silently absorbed.",
+  },
+  { title: "Reporting cadence", body: "Weekly hours / burn-down plus a demo is the default." },
+  { title: "Backlog ownership", body: "Name who on the client side decides priority sprint by sprint." },
+  {
+    title: "Change handling",
+    body: "New scope goes through a change order, not straight onto the backlog. Agree the price change before starting the work, not after.",
+  },
+  {
+    title: "Assumptions & exclusions",
+    body: "Attach the list this estimate depends on (see Step 1). If a client-side dependency slips, that's grounds for a change order or a timeline slip — not a bigger invoice.",
+  },
+];
+
 export function SummaryTMScreen({
   estimate,
   onChange,
@@ -46,10 +68,21 @@ export function SummaryTMScreen({
   const roleBreakdown = calcRoleBreakdown(estimate.timeMaterials, estimate.rateEffort);
   const currency = estimate.projectDetails.currency;
   const expensesTotal = sumExpenses(estimate.expenses);
-  const grandTotal = totals.recommendedBudget + expensesTotal;
+  const isFixedPrice = estimate.timeMaterials.isFixedPrice;
+  const riskCoveragePct = estimate.timeMaterials.fixedPriceRiskCoveragePct;
+  // Fixed-price mode quotes a risk-adjusted figure between the expected
+  // case and the full pessimistic case (see fixedPriceQuote in calc.ts),
+  // instead of the plain expected-case recommended budget — the freelancer
+  // absorbs any overrun beyond it, so how much of the worst case to price
+  // in is a deliberate per-estimate choice (the risk coverage slider on
+  // the Assumptions step).
+  const quotedPrice = isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget;
+  const grandTotal = quotedPrice + expensesTotal;
   const paymentSplit = estimate.timeMaterials.paymentSplit;
   const milestones = calcPaymentMilestones(grandTotal, paymentSplit);
-  const activeSplitPresetId = matchingPaymentSplitPresetId(paymentSplit, TM_PAYMENT_SPLIT_PRESETS);
+  const presetList = isFixedPrice ? PAYMENT_SPLIT_PRESETS : TM_PAYMENT_SPLIT_PRESETS;
+  const activeSplitPresetId = matchingPaymentSplitPresetId(paymentSplit, presetList);
+  const governance = isFixedPrice ? GOVERNANCE_FIXED_PRICE : GOVERNANCE;
 
   const selectPaymentSplitPreset = (preset: PaymentSplitPreset) => {
     onChange((e) => ({
@@ -66,6 +99,7 @@ export function SummaryTMScreen({
       windowTitle={windowTitleFor(estimate)}
       breadcrumbLabel={breadcrumbLabelFor(estimate)}
       currentStep={3}
+      furthestStep={estimate.furthestStep}
       savedLabel={savedLabel}
       onGoToList={onGoToList}
       onNewEstimate={onNewEstimate}
@@ -91,14 +125,18 @@ export function SummaryTMScreen({
     >
       <div className={styles.content}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Here's your recommended budget</h1>
-          <p className={styles.pageSubtitle}>Built from your work breakdown, overhead uplift, and contingency buffer.</p>
+          <h1 className={styles.pageTitle}>{isFixedPrice ? "Here's Your Fixed Price" : "Here's Your Recommended Budget"}</h1>
+          <p className={styles.pageSubtitle}>
+            {isFixedPrice
+              ? `Built from ${riskCoveragePct}% risk coverage (set on the Assumptions step), so you're covered for the share of the worst case you chose to price in.`
+              : "Built from your work breakdown, overhead uplift, and contingency buffer."}
+          </p>
         </div>
 
         <div className={styles.kpiRow}>
           <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>RECOMMENDED BUDGET</span>
-            <span className={styles.kpiValue}>{formatMoney(totals.recommendedBudget, currency)}</span>
+            <span className={styles.kpiLabel}>{isFixedPrice ? "FIXED PRICE" : "RECOMMENDED BUDGET"}</span>
+            <span className={styles.kpiValue}>{formatMoney(quotedPrice, currency)}</span>
             <span className={styles.kpiFoot}>Quote this as your target price</span>
           </div>
           <div className={styles.kpi}>
@@ -108,48 +146,79 @@ export function SummaryTMScreen({
             </span>
             <span className={styles.kpiFoot}>± {formatDays(totals.sigmaDays, 2)} days combined uncertainty</span>
           </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>NOT-TO-EXCEED CAP</span>
-            <span className={styles.kpiValue}>{formatMoney(totals.notToExceedCap, currency)}</span>
-            <span className={styles.kpiFoot}>Agree this ceiling with the client (pessimistic case)</span>
-          </div>
+          {isFixedPrice ? (
+            <div className={styles.kpi}>
+              <span className={styles.kpiLabel}>EXPECTED COST</span>
+              <span className={styles.kpiValue}>{formatMoney(totals.recommendedBudget, currency)}</span>
+              <span className={styles.kpiFoot}>Expected costs without risk adjustment — internal only, never shown to the client</span>
+            </div>
+          ) : (
+            <div className={styles.kpi}>
+              <span className={styles.kpiLabel}>NOT-TO-EXCEED CAP</span>
+              <span className={styles.kpiValue}>{formatMoney(totals.notToExceedCap, currency)}</span>
+              <span className={styles.kpiFoot}>Agree this ceiling with the client (pessimistic case)</span>
+            </div>
+          )}
         </div>
 
         <div className={styles.bottomRow}>
           <Card
-            title="Cost build-up"
-            description="How the recommended budget was assembled, step by step."
+            title="Cost Build-Up"
+            description={
+              isFixedPrice
+                ? `How the fixed price was assembled, step by step, at ${riskCoveragePct}% risk coverage.`
+                : "How the recommended budget was assembled, step by step."
+            }
           >
             <div className={styles.buildRow}>
-              <span>Base delivery cost</span>
+              <span>Base Delivery Cost</span>
               <span>{formatMoney(totals.baseCost, currency)}</span>
             </div>
+            {isFixedPrice && (
+              <>
+                <div className={styles.buildRow}>
+                  <span>
+                    + Risk Coverage ({riskCoveragePct}% of {formatMoney(totals.baseCost, currency)}–
+                    {formatMoney(totals.pessimisticCost, currency)})
+                  </span>
+                  <span>{formatMoney(totals.riskCoverageAmount, currency)}</span>
+                </div>
+                <div className={styles.buildRowSub}>
+                  <span>Risk-Adjusted Cost</span>
+                  <span>{formatMoney(totals.riskAdjustedCost, currency)}</span>
+                </div>
+              </>
+            )}
             <div className={styles.buildRow}>
               <span>+ Overhead ({estimate.overheadRisk.overheadPct}%)</span>
-              <span>{formatMoney(totals.overheadAmount, currency)}</span>
+              <span>
+                {formatMoney(isFixedPrice ? totals.riskAdjustedOverheadAmount : totals.overheadAmount, currency)}
+              </span>
             </div>
             <div className={styles.buildRowSub}>
-              <span>Delivery subtotal</span>
-              <span>{formatMoney(totals.deliverySubtotal, currency)}</span>
+              <span>Delivery Subtotal</span>
+              <span>{formatMoney(isFixedPrice ? totals.riskAdjustedSubtotal : totals.deliverySubtotal, currency)}</span>
             </div>
             <div className={styles.buildRow}>
               <span>+ Contingency ({estimate.overheadRisk.contingencyPct}%)</span>
-              <span>{formatMoney(totals.contingencyAmount, currency)}</span>
+              <span>
+                {formatMoney(isFixedPrice ? totals.riskAdjustedContingencyAmount : totals.contingencyAmount, currency)}
+              </span>
             </div>
             <div className={styles.divider} />
             <div className={styles.buildRowTotal}>
-              <span>Recommended budget</span>
-              <span>{formatMoney(totals.recommendedBudget, currency)}</span>
+              <span>{isFixedPrice ? "Fixed Price" : "Recommended Budget"}</span>
+              <span>{formatMoney(quotedPrice, currency)}</span>
             </div>
             {expensesTotal > 0 && (
               <>
                 <div className={styles.buildRow}>
-                  <span>+ Pass-through expenses</span>
+                  <span>+ Pass-Through Expenses</span>
                   <span>{formatMoney(expensesTotal, currency)}</span>
                 </div>
                 <div className={styles.divider} />
                 <div className={styles.buildRowTotal}>
-                  <span>Total quoted price</span>
+                  <span>Total Quoted Price</span>
                   <span>{formatMoney(grandTotal, currency)}</span>
                 </div>
               </>
@@ -157,10 +226,10 @@ export function SummaryTMScreen({
           </Card>
 
           <Card
-            title="Governance checklist"
+            title="Governance Checklist"
             description="Agree these with the client before you start. Company policy §4.4."
           >
-            {GOVERNANCE.map((item) => (
+            {governance.map((item) => (
               <div className={styles.govRow} key={item.title}>
                 <span className={styles.checkIcon}>✓</span>
                 <div>
@@ -172,8 +241,19 @@ export function SummaryTMScreen({
           </Card>
         </div>
 
+        <Card title="Effective Day Rate" description="Internal only. Never appears on the client proposal.">
+          <div className={styles.buildRow}>
+            <span>Blended Day Rate, Overhead Included</span>
+            <span>{formatMoney(totals.effectiveDayRate, currency)}</span>
+          </div>
+          <p className={styles.kpiFoot}>
+            What you're actually netting per day once overhead is folded in, blended across whatever mix of rates got
+            used.
+          </p>
+        </Card>
+
         {roleBreakdown.length > 0 && (
-          <Card title="Team & rate split" description="Where the base delivery cost comes from, by role.">
+          <Card title="Team & Rate Split" description="Where the base delivery cost comes from, by role.">
             <div className={styles.milestoneRow}>
               {roleBreakdown.map((row) => (
                 <div className={styles.milestone} key={row.roleId}>
@@ -188,9 +268,9 @@ export function SummaryTMScreen({
           </Card>
         )}
 
-        <Card title="Suggested payment schedule" description="Pick the split that fits how this engagement will run.">
+        <Card title="Suggested Payment Schedule" description="Pick the split that fits how this engagement will run.">
           <div className={styles.splitPresetRow}>
-            {TM_PAYMENT_SPLIT_PRESETS.map((preset) => (
+            {presetList.map((preset) => (
               <button
                 type="button"
                 key={preset.id}

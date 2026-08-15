@@ -63,7 +63,7 @@ describe("isEstimateShape", () => {
     ).toBe(false);
   });
 
-  it("accepts a legacy estimate predating roles/paymentSplit/serviceLines", () => {
+  it("accepts a legacy estimate predating roles/paymentSplit", () => {
     // Estimates saved before role-based pricing and payment-split presets
     // shipped won't have these fields; the shape check must still accept
     // them so normalizeEstimate gets a chance to backfill defaults.

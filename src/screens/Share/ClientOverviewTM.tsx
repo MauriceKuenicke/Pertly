@@ -13,10 +13,12 @@ export function ClientOverviewTM({ estimate }: Props) {
   const currency = estimate.projectDetails.currency;
   const preparerName = estimate.projectDetails.preparerName;
   const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
-  const allocations = allocateBudgetByPackage(totals);
+  const isFixedPrice = estimate.timeMaterials.isFixedPrice;
+  const quotedPrice = isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget;
+  const allocations = allocateBudgetByPackage(totals, quotedPrice);
   const validUntil = formatDate(todayPlusDays(14));
   const expensesTotal = sumExpenses(estimate.expenses);
-  const grandTotal = totals.recommendedBudget + expensesTotal;
+  const grandTotal = quotedPrice + expensesTotal;
   const milestones = calcPaymentMilestones(grandTotal, estimate.timeMaterials.paymentSplit);
 
   return (
@@ -29,7 +31,9 @@ export function ClientOverviewTM({ estimate }: Props) {
         </div>
       </div>
 
-      <h1 className={styles.docTitle}>{estimate.projectDetails.estimateName || "Project Estimate"}: Project Estimate</h1>
+      <h1 className={styles.docTitle}>
+        {estimate.projectDetails.estimateName || "Project Estimate"}: {isFixedPrice ? "Fixed Price Quote" : "Project Estimate"}
+      </h1>
 
       <div className={styles.metaGrid}>
         <div>
@@ -52,8 +56,10 @@ export function ClientOverviewTM({ estimate }: Props) {
 
       <p className={styles.docParagraph}>
         The work below is split into {allocations.length} deliverable{allocations.length === 1 ? "" : "s"}, each priced from a
-        best-case / likely / worst-case range with a risk buffer already folded in. You're billed for actual time worked, and
-        the total is capped. You'll never pay above the not-to-exceed figure.
+        best-case / likely / worst-case range with a risk buffer already folded in.{" "}
+        {isFixedPrice
+          ? "This is a fixed price for the full scope described below — agreed upfront, and it won't change regardless of how the work actually plays out."
+          : "You're billed for actual time worked, and the total is capped. You'll never pay above the not-to-exceed figure."}
       </p>
 
       <table className={styles.table}>
@@ -71,22 +77,23 @@ export function ClientOverviewTM({ estimate }: Props) {
             </tr>
           ))}
           <tr className={styles.tableTotal}>
-            <td>Estimated investment</td>
-            <td className={styles.tableRight}>{formatMoney(totals.recommendedBudget, currency)}</td>
+            <td>{isFixedPrice ? "Fixed Price" : "Estimated Investment"}</td>
+            <td className={styles.tableRight}>{formatMoney(quotedPrice, currency)}</td>
           </tr>
         </tbody>
       </table>
 
       <div className={styles.capNote}>
-        🔒 Not-to-exceed cap: {formatMoney(totals.notToExceedCap + expensesTotal, currency)}. You will never be billed
-        above this.
+        {isFixedPrice
+          ? "📌 Fixed price — the total above won't change once agreed, regardless of hours worked."
+          : `🔒 Not-to-exceed cap: ${formatMoney(totals.notToExceedCap + expensesTotal, currency)}. You will never be billed above this.`}
       </div>
 
       <ExpensesSection expenses={estimate.expenses} currency={currency} />
 
       {expensesTotal > 0 && (
         <div className={styles.buildRowTotal}>
-          <span>Total quoted price</span>
+          <span>Total Quoted Price</span>
           <span>{formatMoney(grandTotal, currency)}</span>
         </div>
       )}
@@ -94,7 +101,7 @@ export function ClientOverviewTM({ estimate }: Props) {
       <PaymentScheduleSection milestones={milestones} currency={currency} />
 
       <div className={styles.assumptions}>
-        <h2 className={styles.sectionHeading}>Assumptions & exclusions</h2>
+        <h2 className={styles.sectionHeading}>Assumptions & Exclusions</h2>
         {[...estimate.assumptions, ...estimate.exclusions].map((item, i) => (
           <p className={styles.bulletRow} key={i}>
             • {item}

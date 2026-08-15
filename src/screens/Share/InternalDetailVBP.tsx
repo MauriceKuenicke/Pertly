@@ -49,7 +49,7 @@ export function InternalDetailVBP({ estimate }: Props) {
         </div>
       </div>
 
-      <h2 className={styles.sectionHeading}>Value drivers</h2>
+      <h2 className={styles.sectionHeading}>Value Drivers</h2>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -68,19 +68,19 @@ export function InternalDetailVBP({ estimate }: Props) {
             </tr>
           ))}
           <tr className={styles.tableTotal}>
-            <td>Annual problem cost</td>
+            <td>Annual Problem Cost</td>
             <td className={styles.tableRight}>{formatMoney(totals.annualProblemCost, currency)}</td>
           </tr>
         </tbody>
       </table>
 
-      <h2 className={styles.sectionHeading}>Fee build-up</h2>
+      <h2 className={styles.sectionHeading}>Fee Build-Up</h2>
       <div className={styles.buildRow}>
-        <span>Annual problem cost</span>
+        <span>Annual Problem Cost</span>
         <span>{formatMoney(totals.annualProblemCost, currency)}</span>
       </div>
       <div className={styles.buildRow}>
-        <span>× Conservative improvement ({Math.round(totals.conservativePct)}%)</span>
+        <span>× Conservative Improvement ({Math.round(totals.conservativePct)}%)</span>
         <span>{formatMoney(totals.conservativeValue, currency)}</span>
       </div>
       <div className={styles.buildRow}>
@@ -92,7 +92,7 @@ export function InternalDetailVBP({ estimate }: Props) {
         <span>{formatMoney(totals.recommendedFee, currency)}</span>
       </div>
       <div className={styles.buildRowTotal}>
-        <span>Recommended fee</span>
+        <span>Recommended Fee</span>
         <span>{formatMoney(totals.recommendedFee, currency)}</span>
       </div>
       <div className={styles.buildRow}>
@@ -102,27 +102,27 @@ export function InternalDetailVBP({ estimate }: Props) {
       {expensesTotal > 0 && (
         <>
           <div className={styles.buildRow}>
-            <span>+ Pass-through expenses</span>
+            <span>+ Pass-Through Expenses</span>
             <span>{formatMoney(expensesTotal, currency)}</span>
           </div>
           <div className={styles.buildRowTotal}>
-            <span>Total quoted price</span>
+            <span>Total Quoted Price</span>
             <span>{formatMoney(grandTotal, currency)}</span>
           </div>
         </>
       )}
 
-      <h2 className={styles.sectionHeading}>Break-even effort</h2>
+      <h2 className={styles.sectionHeading}>Break-Even Effort</h2>
       <div className={styles.buildRow}>
-        <span>Your effective day rate ({estimate.overheadRisk.overheadPct}% overhead)</span>
+        <span>Your Effective Day Rate ({estimate.overheadRisk.overheadPct}% Overhead)</span>
         <span>{formatMoney(breakEven.effectiveDayRate, currency)}</span>
       </div>
       <div className={styles.buildRowTotal}>
-        <span>Break-even effort</span>
+        <span>Break-Even Effort</span>
         <span>{formatDays(breakEven.breakEvenDays)} d</span>
       </div>
 
-      <h2 className={styles.sectionHeading}>Tier economics</h2>
+      <h2 className={styles.sectionHeading}>Tier Economics</h2>
       <table className={styles.table}>
         <thead>
           <tr>

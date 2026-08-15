@@ -6,7 +6,8 @@ import { createId } from "../../lib/id";
 import styles from "./SettingsScreen.module.css";
 
 export function SettingsScreen() {
-  const { settings, updateSettings, goToList, goToSettings, createAndOpenEstimate } = useEstimates();
+  const { settings, updateSettings, goToList, goToSettings, createAndOpenEstimate, saveStatus } = useEstimates();
+  const savedLabel = saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved just now" : null;
 
   return (
     <div className={styles.window}>
@@ -20,17 +21,25 @@ export function SettingsScreen() {
         />
         <div className={styles.main}>
           <div className={styles.header}>
-            <h1 className={styles.title}>Settings</h1>
-            <p className={styles.subtitle}>
-              Defaults applied whenever you create a new estimate. Existing estimates aren't affected.
-            </p>
+            <div>
+              <h1 className={styles.title}>Settings</h1>
+              <p className={styles.subtitle}>
+                Defaults applied whenever you create a new estimate. Existing estimates aren't affected.
+              </p>
+            </div>
+            {savedLabel && (
+              <div className={styles.saved}>
+                <span className={styles.savedDot} />
+                <span>{savedLabel}</span>
+              </div>
+            )}
           </div>
 
           <div className={styles.body}>
             <div className={styles.formColumn}>
-              <Card title="Project defaults">
+              <Card title="Project Defaults">
                 <Field
-                  label="Your name"
+                  label="Your Name"
                   value={settings.preparerName}
                   placeholder="e.g. Jane Doe"
                   helpText="Pre-fills the preparer name on every new estimate."
@@ -52,10 +61,10 @@ export function SettingsScreen() {
                 </label>
               </Card>
 
-              <Card title="Rate & effort" description="Your default billing rate and effort unit.">
+              <Card title="Rate & Effort" description="Your default billing rate and effort unit.">
                 <div className={styles.row2}>
                   <Field
-                    label="Day rate"
+                    label="Day Rate"
                     type="number"
                     min={0}
                     prefix={currencySymbol(settings.currency)}
@@ -63,7 +72,7 @@ export function SettingsScreen() {
                     onChange={(e) => updateSettings((s) => ({ ...s, dayRate: Number(e.target.value) }))}
                   />
                   <Field
-                    label="Working hours / day"
+                    label="Working Hours / Day"
                     type="number"
                     min={1}
                     max={24}
@@ -73,10 +82,10 @@ export function SettingsScreen() {
                 </div>
               </Card>
 
-              <Card title="Overhead & risk" description="Non-billable effort and buffer for estimation uncertainty.">
+              <Card title="Overhead & Risk" description="Non-billable effort and buffer for estimation uncertainty.">
                 <div className={styles.row2}>
                   <Field
-                    label="Overhead uplift"
+                    label="Overhead Uplift"
                     type="number"
                     min={0}
                     max={100}
@@ -85,7 +94,7 @@ export function SettingsScreen() {
                     onChange={(e) => updateSettings((s) => ({ ...s, overheadPct: Number(e.target.value) }))}
                   />
                   <Field
-                    label="Contingency buffer"
+                    label="Contingency Buffer"
                     type="number"
                     min={0}
                     max={100}
@@ -97,7 +106,7 @@ export function SettingsScreen() {
               </Card>
 
               <Card
-                title="Time & Materials rates"
+                title="Time & Materials Rates"
                 description="Bill every work package the same, or set up roles with their own day rate. Applies to new estimates; existing ones keep their own roster."
               >
                 <div className={styles.rateModeRow}>
@@ -108,7 +117,7 @@ export function SettingsScreen() {
                   >
                     <div className={styles.rateModeHead}>
                       <span className={`${styles.radio} ${!settings.useRoleBasedPricing ? styles.radioActive : ""}`} />
-                      <span className={styles.rateModeName}>Blended rate</span>
+                      <span className={styles.rateModeName}>Blended Rate</span>
                     </div>
                     <p className={styles.rateModeDesc}>New estimates start with one day rate for every work package.</p>
                   </button>
@@ -119,7 +128,7 @@ export function SettingsScreen() {
                   >
                     <div className={styles.rateModeHead}>
                       <span className={`${styles.radio} ${settings.useRoleBasedPricing ? styles.radioActive : ""}`} />
-                      <span className={styles.rateModeName}>Role-based rates</span>
+                      <span className={styles.rateModeName}>Role-Based Rates</span>
                     </div>
                     <p className={styles.rateModeDesc}>New estimates start with the roster below, assignable per package.</p>
                   </button>
@@ -171,18 +180,18 @@ export function SettingsScreen() {
                     }
                   >
                     <span className={styles.addPlus}>+</span>
-                    Add role
+                    Add Role
                   </button>
                 </div>
               </Card>
 
               <Card
-                title="Value-based pricing defaults"
+                title="Value-Based Pricing Defaults"
                 description="Starting point for the sliders in Step 2 of a new value-based estimate."
               >
                 <div className={styles.row3}>
                   <Field
-                    label="Conservative improvement"
+                    label="Conservative Improvement"
                     type="number"
                     min={5}
                     max={80}
@@ -200,7 +209,7 @@ export function SettingsScreen() {
                     onChange={(e) => updateSettings((s) => ({ ...s, attributionPct: Number(e.target.value) }))}
                   />
                   <Field
-                    label="Value capture rate"
+                    label="Value Capture Rate"
                     type="number"
                     min={5}
                     max={25}

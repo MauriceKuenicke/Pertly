@@ -68,6 +68,11 @@ export interface TimeMaterialsData {
   useRoleBasedPricing: boolean;
   roles: Role[];
   paymentSplit: PaymentSplitEntry[]; // suggested payment schedule, editable
+  isFixedPrice: boolean; // false = variable/actuals billing, true = single fixed price quoted upfront
+  // 0-100, slider. Only meaningful when isFixedPrice is true: how much of the
+  // optimistic-pessimistic spread gets priced into the fixed quote, from the
+  // expected case (0) to the full pessimistic case (100). See calcTimeMaterials.
+  fixedPriceRiskCoveragePct: number;
 }
 
 export interface ValueBasedData {
@@ -75,7 +80,6 @@ export interface ValueBasedData {
   conservativePct: number; // 5-80, slider
   attributionPct: number; // 10-100, slider
   valueCaptureRatePct: number; // 5-25, slider
-  serviceLines: string[];
   tiers: PricingTier[]; // exactly 3: A, B (recommended), C
   recommendedTierId: string;
   paymentSplit: PaymentSplitEntry[]; // suggested payment schedule, editable
@@ -87,6 +91,10 @@ export interface Estimate {
   createdAt: string;
   updatedAt: string;
   currentStep: WizardStep;
+  // The furthest step ever reached, independent of currentStep. Lets the
+  // breadcrumb keep steps clickable after navigating back to fix something,
+  // instead of re-gating on how far the user has already gotten.
+  furthestStep: WizardStep;
   pricingMethod: PricingMethod;
   projectDetails: ProjectDetails;
   rateEffort: RateEffort;

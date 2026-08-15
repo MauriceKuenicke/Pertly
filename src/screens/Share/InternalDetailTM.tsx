@@ -15,7 +15,10 @@ export function InternalDetailTM({ estimate }: Props) {
   const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
   const roleBreakdown = calcRoleBreakdown(estimate.timeMaterials, estimate.rateEffort);
   const expensesTotal = sumExpenses(estimate.expenses);
-  const grandTotal = totals.recommendedBudget + expensesTotal;
+  const isFixedPrice = estimate.timeMaterials.isFixedPrice;
+  const riskCoveragePct = estimate.timeMaterials.fixedPriceRiskCoveragePct;
+  const quotedPrice = isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget;
+  const grandTotal = quotedPrice + expensesTotal;
   const milestones = calcPaymentMilestones(grandTotal, estimate.timeMaterials.paymentSplit);
 
   const roleNameFor = (roleId: string | undefined) => {
@@ -53,58 +56,110 @@ export function InternalDetailTM({ estimate }: Props) {
           <span className={styles.metaValue}>{estimate.overheadRisk.contingencyPct}%</span>
         </div>
         <div>
-          <span className={styles.metaLabel}>NTE CAP BASIS</span>
-          <span className={styles.metaValue}>Pessimistic case</span>
+          <span className={styles.metaLabel}>{isFixedPrice ? "PRICING STRUCTURE" : "NTE CAP BASIS"}</span>
+          <span className={styles.metaValue}>{isFixedPrice ? "Fixed Price" : "Pessimistic Case"}</span>
         </div>
       </div>
 
-      <h2 className={styles.sectionHeading}>Cost build-up</h2>
-      <div className={styles.buildRow}>
-        <span>
-          Base delivery cost (
-          {useRoleBasedPricing
-            ? `${formatDays(totals.expectedDays)} d across roles`
-            : `${formatDays(totals.expectedDays)} d × ${formatMoney(estimate.rateEffort.dayRate, currency)}`}
-          )
-        </span>
-        <span>{formatMoney(totals.baseCost, currency)}</span>
-      </div>
-      <div className={styles.buildRow}>
-        <span>+ Overhead ({estimate.overheadRisk.overheadPct}%)</span>
-        <span>{formatMoney(totals.overheadAmount, currency)}</span>
-      </div>
-      <div className={styles.buildRowSub}>
-        <span>Delivery subtotal</span>
-        <span>{formatMoney(totals.deliverySubtotal, currency)}</span>
-      </div>
-      <div className={styles.buildRow}>
-        <span>+ Contingency ({estimate.overheadRisk.contingencyPct}%)</span>
-        <span>{formatMoney(totals.contingencyAmount, currency)}</span>
-      </div>
-      <div className={styles.buildRowTotal}>
-        <span>Recommended budget (quote this)</span>
-        <span>{formatMoney(totals.recommendedBudget, currency)}</span>
-      </div>
-      <div className={styles.buildRow}>
-        <span>Not-to-exceed cap (pessimistic case)</span>
-        <span>{formatMoney(totals.notToExceedCap, currency)}</span>
-      </div>
+      <h2 className={styles.sectionHeading}>Cost Build-Up</h2>
+      {isFixedPrice ? (
+        <>
+          <div className={styles.buildRow}>
+            <span>Base Delivery Cost</span>
+            <span>{formatMoney(totals.baseCost, currency)}</span>
+          </div>
+          <div className={styles.buildRow}>
+            <span>
+              + Risk Coverage ({riskCoveragePct}% of {formatMoney(totals.baseCost, currency)}–
+              {formatMoney(totals.pessimisticCost, currency)})
+            </span>
+            <span>{formatMoney(totals.riskCoverageAmount, currency)}</span>
+          </div>
+          <div className={styles.buildRowSub}>
+            <span>Risk-Adjusted Cost</span>
+            <span>{formatMoney(totals.riskAdjustedCost, currency)}</span>
+          </div>
+          <div className={styles.buildRow}>
+            <span>+ Overhead ({estimate.overheadRisk.overheadPct}%)</span>
+            <span>{formatMoney(totals.riskAdjustedOverheadAmount, currency)}</span>
+          </div>
+          <div className={styles.buildRowSub}>
+            <span>Delivery Subtotal</span>
+            <span>{formatMoney(totals.riskAdjustedSubtotal, currency)}</span>
+          </div>
+          <div className={styles.buildRow}>
+            <span>+ Contingency ({estimate.overheadRisk.contingencyPct}%)</span>
+            <span>{formatMoney(totals.riskAdjustedContingencyAmount, currency)}</span>
+          </div>
+          <div className={styles.buildRowTotal}>
+            <span>Fixed Price (Quote This)</span>
+            <span>{formatMoney(quotedPrice, currency)}</span>
+          </div>
+          <div className={styles.buildRow}>
+            <span>Expected Cost (Internal Reference, Not Shown to Client)</span>
+            <span>{formatMoney(totals.recommendedBudget, currency)}</span>
+          </div>
+          <div className={styles.buildRow}>
+            <span>Not-to-Exceed Ceiling (Internal Reference, 100% Risk Coverage)</span>
+            <span>{formatMoney(totals.notToExceedCap, currency)}</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className={styles.buildRow}>
+            <span>
+              Base Delivery Cost (
+              {useRoleBasedPricing
+                ? `${formatDays(totals.expectedDays)} d across roles`
+                : `${formatDays(totals.expectedDays)} d × ${formatMoney(estimate.rateEffort.dayRate, currency)}`}
+              )
+            </span>
+            <span>{formatMoney(totals.baseCost, currency)}</span>
+          </div>
+          <div className={styles.buildRow}>
+            <span>+ Overhead ({estimate.overheadRisk.overheadPct}%)</span>
+            <span>{formatMoney(totals.overheadAmount, currency)}</span>
+          </div>
+          <div className={styles.buildRowSub}>
+            <span>Delivery Subtotal</span>
+            <span>{formatMoney(totals.deliverySubtotal, currency)}</span>
+          </div>
+          <div className={styles.buildRow}>
+            <span>+ Contingency ({estimate.overheadRisk.contingencyPct}%)</span>
+            <span>{formatMoney(totals.contingencyAmount, currency)}</span>
+          </div>
+          <div className={styles.buildRowTotal}>
+            <span>Recommended Budget (Quote This)</span>
+            <span>{formatMoney(totals.recommendedBudget, currency)}</span>
+          </div>
+          <div className={styles.buildRow}>
+            <span>Not-to-Exceed Cap (Pessimistic Case)</span>
+            <span>{formatMoney(totals.notToExceedCap, currency)}</span>
+          </div>
+        </>
+      )}
       {expensesTotal > 0 && (
         <>
           <div className={styles.buildRow}>
-            <span>+ Pass-through expenses</span>
+            <span>+ Pass-Through Expenses</span>
             <span>{formatMoney(expensesTotal, currency)}</span>
           </div>
           <div className={styles.buildRowTotal}>
-            <span>Total quoted price</span>
+            <span>Total Quoted Price</span>
             <span>{formatMoney(grandTotal, currency)}</span>
           </div>
         </>
       )}
 
+      <h2 className={styles.sectionHeading}>Effective Day Rate</h2>
+      <div className={styles.buildRow}>
+        <span>Blended Day Rate, Overhead Included</span>
+        <span>{formatMoney(totals.effectiveDayRate, currency)}</span>
+      </div>
+
       {roleBreakdown.length > 0 && (
         <>
-          <h2 className={styles.sectionHeading}>Team & rate breakdown</h2>
+          <h2 className={styles.sectionHeading}>Team & Rate Breakdown</h2>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -130,7 +185,7 @@ export function InternalDetailTM({ estimate }: Props) {
         </>
       )}
 
-      <h2 className={styles.sectionHeading}>Detailed work breakdown</h2>
+      <h2 className={styles.sectionHeading}>Detailed Work Breakdown</h2>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -151,9 +206,9 @@ export function InternalDetailTM({ estimate }: Props) {
               <td>{i + 1}</td>
               <td>{row.name || "Untitled package"}</td>
               {useRoleBasedPricing && <td>{roleNameFor(row.roleId)}</td>}
-              <td className={styles.tableRight}>{row.optimisticDays}</td>
-              <td className={styles.tableRight}>{row.likelyDays}</td>
-              <td className={styles.tableRight}>{row.pessimisticDays}</td>
+              <td className={styles.tableRight}>{formatDays(row.optimisticDays)}</td>
+              <td className={styles.tableRight}>{formatDays(row.likelyDays)}</td>
+              <td className={styles.tableRight}>{formatDays(row.pessimisticDays)}</td>
               <td className={styles.tableRight}>{formatDays(row.expectedDays)}</td>
               <td className={styles.tableRight}>±{formatDays(row.sigmaDays, 2)}</td>
               <td className={styles.tableRight}>{formatMoney(row.cost, currency)}</td>
@@ -163,9 +218,9 @@ export function InternalDetailTM({ estimate }: Props) {
             <td />
             <td>Total</td>
             {useRoleBasedPricing && <td />}
-            <td className={styles.tableRight}>{totals.totalOptimisticDays}</td>
-            <td className={styles.tableRight}>{totals.totalLikelyDays}</td>
-            <td className={styles.tableRight}>{totals.totalPessimisticDays}</td>
+            <td className={styles.tableRight}>{formatDays(totals.totalOptimisticDays)}</td>
+            <td className={styles.tableRight}>{formatDays(totals.totalLikelyDays)}</td>
+            <td className={styles.tableRight}>{formatDays(totals.totalPessimisticDays)}</td>
             <td className={styles.tableRight}>{formatDays(totals.expectedDays)}</td>
             <td className={styles.tableRight}>±{formatDays(totals.sigmaDays, 2)}</td>
             <td className={styles.tableRight}>{formatMoney(totals.baseCost, currency)}</td>

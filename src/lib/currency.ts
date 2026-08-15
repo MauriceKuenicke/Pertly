@@ -21,6 +21,6 @@ export function formatMoney(amount: number, currency: string, opts: { decimals?:
   return `${currencySymbol(currency)}${formatted}`;
 }
 
-export function formatDays(days: number, decimals = 1): string {
+export function formatDays(days: number, decimals = 2): string {
   return days.toFixed(decimals);
 }

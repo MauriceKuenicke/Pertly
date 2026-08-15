@@ -9,7 +9,7 @@ export function ExpensesSection({ expenses, currency }: { expenses: ExpenseItem[
   if (expenses.length === 0) return null;
   return (
     <>
-      <h2 className={styles.sectionHeading}>Pass-through expenses</h2>
+      <h2 className={styles.sectionHeading}>Pass-Through Expenses</h2>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -41,7 +41,7 @@ export function PaymentScheduleSection({
 }) {
   return (
     <>
-      <h2 className={styles.sectionHeading}>Suggested payment schedule</h2>
+      <h2 className={styles.sectionHeading}>Suggested Payment Schedule</h2>
       <table className={styles.table}>
         <thead>
           <tr>

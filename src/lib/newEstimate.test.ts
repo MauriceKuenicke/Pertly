@@ -42,7 +42,17 @@ describe("createEstimate", () => {
 
   it("seeds the T&M payment split with the monthly-in-arrears default", () => {
     const estimate = createEstimate(defaultSettings());
-    expect(estimate.timeMaterials.paymentSplit).toEqual([{ label: "Billed monthly in arrears (actuals)", pct: 100 }]);
+    expect(estimate.timeMaterials.paymentSplit).toEqual([{ label: "Billed Monthly in Arrears (Actuals)", pct: 100 }]);
+  });
+
+  it("always starts in variable mode, regardless of settings", () => {
+    // No Settings-level default for fixed-price mode, unlike role-based
+    // pricing: it's a deliberate per-estimate choice every time.
+    expect(createEstimate(defaultSettings()).timeMaterials.isFixedPrice).toBe(false);
+  });
+
+  it("seeds a conservative 30% default for the fixed-price risk-coverage slider", () => {
+    expect(createEstimate(defaultSettings()).timeMaterials.fixedPriceRiskCoveragePct).toBe(30);
   });
 });
 
@@ -95,6 +105,20 @@ describe("cloneEstimate", () => {
 
     expect(clone.valueBased.paymentSplit).not.toBe(source.valueBased.paymentSplit);
     expect(source.valueBased.paymentSplit[0].pct).not.toBe(99);
+  });
+
+  it("preserves fixed-price mode on the clone", () => {
+    const source = createEstimate(defaultSettings());
+    source.timeMaterials.isFixedPrice = true;
+    const clone = cloneEstimate(source);
+    expect(clone.timeMaterials.isFixedPrice).toBe(true);
+  });
+
+  it("preserves a customized risk-coverage percentage on the clone", () => {
+    const source = createEstimate(defaultSettings());
+    source.timeMaterials.fixedPriceRiskCoveragePct = 75;
+    const clone = cloneEstimate(source);
+    expect(clone.timeMaterials.fixedPriceRiskCoveragePct).toBe(75);
   });
 
   it("gives cloned roles fresh ids and remaps the work package roleId to match", () => {
@@ -196,11 +220,11 @@ describe("estimateToShareCode / importEstimateFromShareCode", () => {
   it("imports a legacy estimate predating roles/paymentSplit, backfilling defaults", () => {
     // Mirrors an estimate saved to disk before role-based pricing and
     // payment-split presets existed: timeMaterials only has workPackages,
-    // valueBased is missing paymentSplit/serviceLines.
+    // valueBased is missing paymentSplit.
     const legacy = {
       ...createEstimate(defaultSettings()),
       timeMaterials: { workPackages: [] },
-      valueBased: { ...createEstimate(defaultSettings()).valueBased, paymentSplit: undefined, serviceLines: undefined },
+      valueBased: { ...createEstimate(defaultSettings()).valueBased, paymentSplit: undefined },
     } as unknown as Estimate;
 
     const imported = importEstimateFromShareCode(encodeToShareCode(legacy));
@@ -209,7 +233,6 @@ describe("estimateToShareCode / importEstimateFromShareCode", () => {
     expect(imported.timeMaterials.paymentSplit.length).toBeGreaterThan(0);
     expect(imported.timeMaterials.useRoleBasedPricing).toBe(false);
     expect(imported.valueBased.paymentSplit.length).toBeGreaterThan(0);
-    expect(imported.valueBased.serviceLines).toEqual([]);
   });
 });
 
@@ -227,17 +250,18 @@ describe("normalizeEstimate", () => {
 
     expect(normalized.timeMaterials.useRoleBasedPricing).toBe(false);
     expect(normalized.timeMaterials.roles.map((r) => r.name)).toEqual(["Trainee", "Junior", "Mid-level", "Senior", "Principal"]);
-    expect(normalized.timeMaterials.paymentSplit).toEqual([{ label: "Billed monthly in arrears (actuals)", pct: 100 }]);
+    expect(normalized.timeMaterials.paymentSplit).toEqual([{ label: "Billed Monthly in Arrears (Actuals)", pct: 100 }]);
+    expect(normalized.timeMaterials.isFixedPrice).toBe(false);
+    expect(normalized.timeMaterials.fixedPriceRiskCoveragePct).toBe(30);
   });
 
   it("backfills missing valueBased fields with sane defaults", () => {
     const estimate = createEstimate(defaultSettings());
-    const { paymentSplit: _paymentSplit, serviceLines: _serviceLines, ...rest } = estimate.valueBased;
+    const { paymentSplit: _paymentSplit, ...rest } = estimate.valueBased;
     const legacy = { ...estimate, valueBased: rest } as unknown as Estimate;
 
     const normalized = normalizeEstimate(legacy);
 
-    expect(normalized.valueBased.serviceLines).toEqual([]);
     const total = normalized.valueBased.paymentSplit.reduce((sum, m) => sum + m.pct, 0);
     expect(total).toBe(100);
   });

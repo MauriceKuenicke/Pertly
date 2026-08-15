@@ -34,11 +34,12 @@ describe("formatMoney", () => {
 });
 
 describe("formatDays", () => {
-  it("defaults to one decimal place", () => {
-    expect(formatDays(2.5)).toBe("2.5");
+  it("defaults to two decimal places", () => {
+    expect(formatDays(2.5)).toBe("2.50");
+    expect(formatDays(2.5678)).toBe("2.57");
   });
 
   it("supports a custom decimal count", () => {
-    expect(formatDays(2.567, 2)).toBe("2.57");
+    expect(formatDays(2.567, 1)).toBe("2.6");
   });
 });

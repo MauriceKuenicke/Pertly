@@ -67,7 +67,7 @@ export function ClientOverviewVBP({ estimate }: Props) {
         </div>
       </div>
 
-      <h2 className={styles.sectionHeading}>Three ways to scope this</h2>
+      <h2 className={styles.sectionHeading}>Three Ways to Scope This</h2>
       <div className={styles.tiersRow}>
         {estimate.valueBased.tiers.map((tier) => (
           <div className={styles.tierCol} key={tier.id}>
@@ -86,7 +86,7 @@ export function ClientOverviewVBP({ estimate }: Props) {
 
       {expensesTotal > 0 && (
         <div className={styles.buildRowTotal}>
-          <span>Total quoted price</span>
+          <span>Total Quoted Price</span>
           <span>{formatMoney(grandTotal, currency)}</span>
         </div>
       )}
@@ -94,7 +94,7 @@ export function ClientOverviewVBP({ estimate }: Props) {
       <PaymentScheduleSection milestones={milestones} currency={currency} />
 
       <div className={styles.assumptions}>
-        <h2 className={styles.sectionHeading}>Assumptions & exclusions</h2>
+        <h2 className={styles.sectionHeading}>Assumptions & Exclusions</h2>
         {[...estimate.assumptions, ...estimate.exclusions].map((item, i) => (
           <p className={styles.bulletRow} key={i}>
             • {item}

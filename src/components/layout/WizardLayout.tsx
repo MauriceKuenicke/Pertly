@@ -8,6 +8,7 @@ interface WizardLayoutProps {
   windowTitle: string;
   breadcrumbLabel: string;
   currentStep: 1 | 2 | 3 | 4;
+  furthestStep: 1 | 2 | 3 | 4;
   savedLabel?: string;
   onGoToList: () => void;
   onNewEstimate: () => void;
@@ -21,6 +22,7 @@ export function WizardLayout({
   windowTitle,
   breadcrumbLabel,
   currentStep,
+  furthestStep,
   savedLabel,
   onGoToList,
   onNewEstimate,
@@ -38,6 +40,7 @@ export function WizardLayout({
           <StepTopBar
             breadcrumbLabel={breadcrumbLabel}
             currentStep={currentStep}
+            furthestStep={furthestStep}
             onBreadcrumbClick={onGoToList}
             onStepClick={onStepClick}
             savedLabel={savedLabel}

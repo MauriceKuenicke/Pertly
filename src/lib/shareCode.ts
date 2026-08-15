@@ -41,10 +41,10 @@ export function decodeShareCode(code: string): unknown {
  * crash or silently broken screen.
  *
  * Deliberately does NOT require timeMaterials.roles/paymentSplit or
- * valueBased.paymentSplit/serviceLines: those fields were added after this
- * app's initial release, so estimates created earlier (and still sitting in
- * someone's local store) won't have them. normalizeEstimate backfills those
- * once a value has passed this check.
+ * valueBased.paymentSplit: those fields were added after this app's initial
+ * release, so estimates created earlier (and still sitting in someone's
+ * local store) won't have them. normalizeEstimate backfills those once a
+ * value has passed this check.
  */
 export function isEstimateShape(value: unknown): value is Estimate {
   if (!value || typeof value !== "object") return false;

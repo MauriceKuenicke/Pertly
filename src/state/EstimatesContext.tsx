@@ -145,15 +145,20 @@ export function EstimatesProvider({ children }: { children: ReactNode }) {
     (step: WizardStep) => {
       if (isEditingDraft && draftEstimate) {
         if (step > 1) {
-          const toSave = { ...draftEstimate, currentStep: step, updatedAt: new Date().toISOString() };
+          const toSave = {
+            ...draftEstimate,
+            currentStep: step,
+            furthestStep: Math.max(draftEstimate.furthestStep, step) as WizardStep,
+            updatedAt: new Date().toISOString(),
+          };
           setStore((s) => ({ ...s, estimates: [toSave, ...s.estimates] }));
           setDraftEstimate(null);
           return;
         }
-        setDraftEstimate((d) => (d ? { ...d, currentStep: step } : d));
+        setDraftEstimate((d) => (d ? { ...d, currentStep: step, furthestStep: Math.max(d.furthestStep, step) as WizardStep } : d));
         return;
       }
-      updateActiveEstimate((e) => ({ ...e, currentStep: step }));
+      updateActiveEstimate((e) => ({ ...e, currentStep: step, furthestStep: Math.max(e.furthestStep, step) as WizardStep }));
     },
     [draftEstimate, isEditingDraft, updateActiveEstimate],
   );

@@ -15,11 +15,9 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+  width: 100%;
   font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  justify-self: start;
+  justify-self: stretch;
 }
 
 .breadcrumbLink {
@@ -29,6 +27,8 @@
   font: inherit;
   font-weight: 500;
   color: var(--text-tertiary);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .breadcrumbLink:hover {
   color: var(--text-secondary);
@@ -36,11 +36,16 @@
 
 .breadcrumbSep {
   color: var(--text-tertiary);
+  flex-shrink: 0;
 }
 
 .breadcrumbCurrent {
   font-weight: 600;
   color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .steps {

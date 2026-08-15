@@ -13,6 +13,7 @@ export function createEstimate(settings: Settings): Estimate {
     createdAt: now,
     updatedAt: now,
     currentStep: 1,
+    furthestStep: 1,
     pricingMethod: "value-based",
     projectDetails: {
       estimateName: "",
@@ -45,6 +46,14 @@ export function createEstimate(settings: Settings): Estimate {
       useRoleBasedPricing: settings.useRoleBasedPricing,
       roles: settings.roles.map((role) => ({ ...role })),
       paymentSplit: TM_DEFAULT_PAYMENT_SPLIT.map((entry) => ({ ...entry })),
+      // No Settings-level default, unlike role-based pricing: every new
+      // estimate starts in variable mode, and fixed-price is a deliberate
+      // per-estimate choice each time (see specs/time-materials.md).
+      isFixedPrice: false,
+      // Conservative default: mostly the likely case, with a slice of
+      // pessimistic-case coverage folded in, rather than either extreme
+      // (see specs/time-materials.md, "Fixed-price mode").
+      fixedPriceRiskCoveragePct: 30,
     },
     valueBased: {
       valueDrivers: [
@@ -57,7 +66,6 @@ export function createEstimate(settings: Settings): Estimate {
       conservativePct: settings.conservativePct,
       attributionPct: settings.attributionPct,
       valueCaptureRatePct: settings.valueCaptureRatePct,
-      serviceLines: [],
       tiers: [
         { id: createId(), name: "Tier A", durationMinWeeks: 3, durationMaxWeeks: 4, price: 0, description: "" },
         { id: tierBId, name: "Tier B", durationMinWeeks: 8, durationMaxWeeks: 12, price: 0, description: "" },
@@ -71,27 +79,30 @@ export function createEstimate(settings: Settings): Estimate {
 
 /**
  * Backfills fields that didn't exist yet when an estimate was first saved:
- * role-based pricing and payment-split presets both shipped after this
- * app's initial release, so estimates created before then are missing
- * timeMaterials.roles/paymentSplit/useRoleBasedPricing and
- * valueBased.paymentSplit/serviceLines. Every read of an estimate coming
- * from outside this session (loaded from disk, or decoded from a share
- * code) should go through this first so the rest of the app can keep
- * assuming a complete shape.
+ * role-based pricing, payment-split presets, fixed-price mode, and the
+ * fixed-price risk-coverage slider all shipped after this app's initial
+ * release, so estimates created before each shipped are missing
+ * timeMaterials.roles/paymentSplit/useRoleBasedPricing/isFixedPrice/
+ * fixedPriceRiskCoveragePct and valueBased.paymentSplit. Every read of an
+ * estimate coming from outside this session (loaded from disk, or decoded
+ * from a share code) should go through this first so the rest of the app
+ * can keep assuming a complete shape.
  */
 export function normalizeEstimate(estimate: Estimate): Estimate {
   return {
     ...estimate,
+    furthestStep: estimate.furthestStep ?? estimate.currentStep ?? 1,
     expenses: estimate.expenses ?? [],
     timeMaterials: {
       workPackages: estimate.timeMaterials?.workPackages ?? [],
       useRoleBasedPricing: estimate.timeMaterials?.useRoleBasedPricing ?? false,
       roles: estimate.timeMaterials?.roles ?? DEFAULT_ROLES.map((role) => ({ ...role })),
       paymentSplit: estimate.timeMaterials?.paymentSplit ?? TM_DEFAULT_PAYMENT_SPLIT.map((entry) => ({ ...entry })),
+      isFixedPrice: estimate.timeMaterials?.isFixedPrice ?? false,
+      fixedPriceRiskCoveragePct: estimate.timeMaterials?.fixedPriceRiskCoveragePct ?? 30,
     },
     valueBased: {
       ...estimate.valueBased,
-      serviceLines: estimate.valueBased?.serviceLines ?? [],
       paymentSplit: estimate.valueBased?.paymentSplit ?? DEFAULT_PAYMENT_SPLIT.map((entry) => ({ ...entry })),
     },
   };
@@ -117,6 +128,7 @@ function freshenEstimate(source: Estimate): Estimate {
     createdAt: now,
     updatedAt: now,
     currentStep: 1,
+    furthestStep: 1,
     assumptions: [...source.assumptions],
     exclusions: [...source.exclusions],
     expenses: source.expenses.map((expense) => ({ ...expense, id: createId() })),
@@ -129,10 +141,11 @@ function freshenEstimate(source: Estimate): Estimate {
       useRoleBasedPricing: source.timeMaterials.useRoleBasedPricing,
       roles: source.timeMaterials.roles.map((role) => ({ ...role, id: roleIdMap.get(role.id)! })),
       paymentSplit: source.timeMaterials.paymentSplit.map((entry) => ({ ...entry })),
+      isFixedPrice: source.timeMaterials.isFixedPrice,
+      fixedPriceRiskCoveragePct: source.timeMaterials.fixedPriceRiskCoveragePct,
     },
     valueBased: {
       ...source.valueBased,
-      serviceLines: [...source.valueBased.serviceLines],
       valueDrivers: source.valueBased.valueDrivers.map((driver) => ({ ...driver, id: createId() })),
       tiers: source.valueBased.tiers.map((tier) => ({ ...tier, id: tierIdMap.get(tier.id)! })),
       recommendedTierId: tierIdMap.get(source.valueBased.recommendedTierId) ?? source.valueBased.recommendedTierId,

@@ -25,9 +25,19 @@ function pkg(overrides: Partial<WorkPackage> = {}): WorkPackage {
 
 function tm(
   workPackages: WorkPackage[],
-  overrides: Partial<Pick<TimeMaterialsData, "useRoleBasedPricing" | "roles" | "paymentSplit">> = {},
+  overrides: Partial<
+    Pick<TimeMaterialsData, "useRoleBasedPricing" | "roles" | "paymentSplit" | "isFixedPrice" | "fixedPriceRiskCoveragePct">
+  > = {},
 ): TimeMaterialsData {
-  return { workPackages, useRoleBasedPricing: false, roles: [], paymentSplit: [], ...overrides };
+  return {
+    workPackages,
+    useRoleBasedPricing: false,
+    roles: [],
+    paymentSplit: [],
+    isFixedPrice: false,
+    fixedPriceRiskCoveragePct: 30,
+    ...overrides,
+  };
 }
 
 describe("normalizeWorkPackageDays", () => {
@@ -93,6 +103,95 @@ describe("calcTimeMaterials", () => {
   it("bases the not-to-exceed cap on the pessimistic case plus overhead and contingency", () => {
     const totals = calcTimeMaterials(tm([pkg({ id: "a" })]), rateEffort, overheadRisk);
     expect(totals.notToExceedCap).toBeCloseTo(totals.totalPessimisticDays * rateEffort.dayRate * 1.2 * 1.1);
+  });
+
+  it("exposes the pessimistic build-up steps, which sum to the not-to-exceed cap", () => {
+    const totals = calcTimeMaterials(tm([pkg({ id: "a" }), pkg({ id: "b" })]), rateEffort, overheadRisk);
+    expect(totals.pessimisticOverheadAmount).toBeCloseTo(totals.pessimisticCost * 0.2);
+    expect(totals.pessimisticSubtotal).toBeCloseTo(totals.pessimisticCost + totals.pessimisticOverheadAmount);
+    expect(totals.pessimisticContingencyAmount).toBeCloseTo(totals.pessimisticSubtotal * 0.1);
+    expect(totals.pessimisticSubtotal + totals.pessimisticContingencyAmount).toBeCloseTo(totals.notToExceedCap);
+  });
+
+  describe("fixed-price risk-coverage build-up", () => {
+    it("at 0% risk coverage, matches the recommended-budget build-up exactly", () => {
+      const totals = calcTimeMaterials(
+        tm([pkg({ id: "a" }), pkg({ id: "b" })], { isFixedPrice: true, fixedPriceRiskCoveragePct: 0 }),
+        rateEffort,
+        overheadRisk,
+      );
+      expect(totals.riskAdjustedCost).toBeCloseTo(totals.baseCost);
+      expect(totals.riskAdjustedOverheadAmount).toBeCloseTo(totals.overheadAmount);
+      expect(totals.riskAdjustedSubtotal).toBeCloseTo(totals.deliverySubtotal);
+      expect(totals.riskAdjustedContingencyAmount).toBeCloseTo(totals.contingencyAmount);
+      expect(totals.fixedPriceQuote).toBeCloseTo(totals.recommendedBudget);
+    });
+
+    it("at 100% risk coverage, matches the pessimistic/not-to-exceed build-up exactly", () => {
+      const totals = calcTimeMaterials(
+        tm([pkg({ id: "a" }), pkg({ id: "b" })], { isFixedPrice: true, fixedPriceRiskCoveragePct: 100 }),
+        rateEffort,
+        overheadRisk,
+      );
+      expect(totals.riskAdjustedCost).toBeCloseTo(totals.pessimisticCost);
+      expect(totals.riskAdjustedOverheadAmount).toBeCloseTo(totals.pessimisticOverheadAmount);
+      expect(totals.riskAdjustedSubtotal).toBeCloseTo(totals.pessimisticSubtotal);
+      expect(totals.riskAdjustedContingencyAmount).toBeCloseTo(totals.pessimisticContingencyAmount);
+      expect(totals.fixedPriceQuote).toBeCloseTo(totals.notToExceedCap);
+    });
+
+    it("at 50% risk coverage, the pre-markup cost is the midpoint between expected and pessimistic", () => {
+      const totals = calcTimeMaterials(
+        tm([pkg({ id: "a" }), pkg({ id: "b" })], { isFixedPrice: true, fixedPriceRiskCoveragePct: 50 }),
+        rateEffort,
+        overheadRisk,
+      );
+      expect(totals.riskAdjustedCost).toBeCloseTo((totals.baseCost + totals.pessimisticCost) / 2);
+    });
+
+    it("keeps the fixed-price quote between the recommended budget and the not-to-exceed cap for any coverage", () => {
+      for (const pct of [0, 10, 30, 50, 70, 100]) {
+        const totals = calcTimeMaterials(
+          tm([pkg({ id: "a" }), pkg({ id: "b" })], { isFixedPrice: true, fixedPriceRiskCoveragePct: pct }),
+          rateEffort,
+          overheadRisk,
+        );
+        expect(totals.fixedPriceQuote).toBeGreaterThanOrEqual(totals.recommendedBudget - 1e-9);
+        expect(totals.fixedPriceQuote).toBeLessThanOrEqual(totals.notToExceedCap + 1e-9);
+      }
+    });
+
+    it("clamps an out-of-range risk-coverage percentage instead of extrapolating", () => {
+      const low = calcTimeMaterials(tm([pkg({ id: "a" })], { fixedPriceRiskCoveragePct: -20 }), rateEffort, overheadRisk);
+      const high = calcTimeMaterials(tm([pkg({ id: "a" })], { fixedPriceRiskCoveragePct: 150 }), rateEffort, overheadRisk);
+      expect(low.riskAdjustedCost).toBeCloseTo(low.baseCost);
+      expect(high.riskAdjustedCost).toBeCloseTo(high.pessimisticCost);
+    });
+
+    it("exposes the pre-markup dollar delta the slider adds, summing back to the risk-adjusted cost", () => {
+      const totals = calcTimeMaterials(
+        tm([pkg({ id: "a" }), pkg({ id: "b" })], { isFixedPrice: true, fixedPriceRiskCoveragePct: 30 }),
+        rateEffort,
+        overheadRisk,
+      );
+      expect(totals.baseCost + totals.riskCoverageAmount).toBeCloseTo(totals.riskAdjustedCost);
+    });
+
+    it("zeroes out the delta at 0% risk coverage and maxes it out at 100%", () => {
+      const zero = calcTimeMaterials(
+        tm([pkg({ id: "a" })], { isFixedPrice: true, fixedPriceRiskCoveragePct: 0 }),
+        rateEffort,
+        overheadRisk,
+      );
+      expect(zero.riskCoverageAmount).toBeCloseTo(0);
+
+      const full = calcTimeMaterials(
+        tm([pkg({ id: "a" })], { isFixedPrice: true, fixedPriceRiskCoveragePct: 100 }),
+        rateEffort,
+        overheadRisk,
+      );
+      expect(full.riskCoverageAmount).toBeCloseTo(full.pessimisticCost - full.baseCost);
+    });
   });
 
   it("never lets the not-to-exceed cap fall below the recommended budget, even for a tight PERT spread", () => {
@@ -268,6 +367,18 @@ describe("allocateBudgetByPackage", () => {
     const allocations = allocateBudgetByPackage(totals);
     expect(allocations).toEqual([{ id: "a", name: "Package", amount: 0 }]);
   });
+
+  it("allocates against an explicit target total instead of the recommended budget, for fixed-price mode", () => {
+    const totals = calcTimeMaterials(
+      tm([pkg({ id: "a", optimisticDays: 1, likelyDays: 1, pessimisticDays: 1 }), pkg({ id: "b", optimisticDays: 3, likelyDays: 3, pessimisticDays: 3 })]),
+      rateEffort,
+      overheadRisk,
+    );
+    const allocations = allocateBudgetByPackage(totals, totals.notToExceedCap);
+    const sumOfAllocations = allocations.reduce((sum, a) => sum + a.amount, 0);
+    expect(sumOfAllocations).toBeCloseTo(totals.notToExceedCap);
+    expect(allocations.find((a) => a.id === "b")!.amount).toBeCloseTo(3 * allocations.find((a) => a.id === "a")!.amount);
+  });
 });
 
 describe("calcValueBased", () => {
@@ -277,7 +388,6 @@ describe("calcValueBased", () => {
       conservativePct: 40,
       attributionPct: 80,
       valueCaptureRatePct: 20,
-      serviceLines: [],
       tiers: [],
       recommendedTierId: "",
       paymentSplit: [],
@@ -436,6 +546,13 @@ describe("PAYMENT_SPLIT_PRESETS", () => {
     const ids = PAYMENT_SPLIT_PRESETS.map((p) => p.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
+
+  it("includes a single full payment on completion, distinct from full upfront", () => {
+    const onCompletion = PAYMENT_SPLIT_PRESETS.find((p) => p.id === "on-completion")!;
+    expect(onCompletion.entries).toEqual([{ label: "Full Payment (On Delivery)", pct: 100 }]);
+    const upfront = PAYMENT_SPLIT_PRESETS.find((p) => p.id === "upfront")!;
+    expect(upfront.entries[0].label).not.toBe(onCompletion.entries[0].label);
+  });
 });
 
 describe("TM_PAYMENT_SPLIT_PRESETS", () => {
@@ -461,6 +578,18 @@ describe("TM_PAYMENT_SPLIT_PRESETS", () => {
     const tmIds = new Set(TM_PAYMENT_SPLIT_PRESETS.map((p) => p.id));
     const vbpIds = PAYMENT_SPLIT_PRESETS.map((p) => p.id);
     expect(vbpIds.some((id) => tmIds.has(id))).toBe(false);
+  });
+
+  it("only offers ongoing/actuals-style schedules, since a fixed total belongs to fixed-price mode (which reuses the VBP list) instead", () => {
+    // deposit-final (50/50) and full-completion (100% on completion) both
+    // implied a total agreed in advance and moved to fixed-price mode.
+    const ids = TM_PAYMENT_SPLIT_PRESETS.map((p) => p.id);
+    expect(ids).toEqual(["monthly-arrears", "deposit-monthly"]);
+  });
+
+  it("keeps the deposit-and-monthly split at 20/80", () => {
+    const depositMonthly = TM_PAYMENT_SPLIT_PRESETS.find((p) => p.id === "deposit-monthly")!;
+    expect(depositMonthly.entries.map((e) => e.pct)).toEqual([20, 80]);
   });
 });
 

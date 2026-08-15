@@ -17,7 +17,7 @@ export function Sidebar({ activeView, onGoToList, onNewEstimate, onGoToSettings 
 
       <button className={styles.cta} onClick={onNewEstimate}>
         <span className={styles.ctaPlus}>+</span>
-        <span>New estimate</span>
+        <span>New Estimate</span>
       </button>
 
       <span className={styles.sectionLabel}>WORKSPACE</span>

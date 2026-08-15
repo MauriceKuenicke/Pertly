@@ -74,6 +74,7 @@
 .importActions {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .body {
@@ -151,9 +152,39 @@
   flex-shrink: 0;
 }
 
+.cardMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .cardClient {
   font-size: 13px;
   color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.methodTag {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.methodTagBrand {
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+}
+
+.methodTagNeutral {
+  background: var(--bg-subtle);
+  color: var(--text-tertiary);
+  font-weight: 600;
 }
 
 .cardFooter {

@@ -69,6 +69,7 @@ export function SummaryVBPScreen({
       windowTitle={windowTitleFor(estimate)}
       breadcrumbLabel={breadcrumbLabelFor(estimate)}
       currentStep={3}
+      furthestStep={estimate.furthestStep}
       savedLabel={savedLabel}
       onGoToList={onGoToList}
       onNewEstimate={onNewEstimate}
@@ -83,7 +84,7 @@ export function SummaryVBPScreen({
           }
           right={
             <>
-              <span className={styles.stepText}>Step 3 of 4: Value-based pricing</span>
+              <span className={styles.stepText}>Step 3 of 4: Value-Based Pricing</span>
               <Button variant="primary" onClick={onNext}>
                 Continue to Proposal →
               </Button>
@@ -94,7 +95,7 @@ export function SummaryVBPScreen({
     >
       <div className={styles.content}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Here's your recommended fee</h1>
+          <h1 className={styles.pageTitle}>Here's Your Recommended Fee</h1>
           <p className={styles.pageSubtitle}>Built from the value you quantified, scaled by attribution and value capture rate.</p>
         </div>
 
@@ -120,7 +121,7 @@ export function SummaryVBPScreen({
           </div>
         </div>
 
-        <Card title="Your tiered proposal" description="The three packages built from the derived fee. This is what gets sent to the client next.">
+        <Card title="Your Tiered Proposal" description="The three packages built from the derived fee. This is what gets sent to the client next.">
           <div className={styles.tiersGrid}>
             {estimate.valueBased.tiers.map((tier) => (
               <div
@@ -142,13 +143,13 @@ export function SummaryVBPScreen({
         </Card>
 
         <div className={styles.bottomRow}>
-          <Card title="Fee build-up" description="How the recommended fee was assembled, step by step.">
+          <Card title="Fee Build-Up" description="How the recommended fee was assembled, step by step.">
             <div className={styles.buildRow}>
-              <span>Annual problem cost</span>
+              <span>Annual Problem Cost</span>
               <span>{formatMoney(totals.annualProblemCost, currency)}</span>
             </div>
             <div className={styles.buildRow}>
-              <span>× Conservative improvement ({Math.round(totals.conservativePct)}%)</span>
+              <span>× Conservative Improvement ({Math.round(totals.conservativePct)}%)</span>
               <span>{formatMoney(totals.conservativeValue, currency)}</span>
             </div>
             <div className={styles.buildRow}>
@@ -161,18 +162,18 @@ export function SummaryVBPScreen({
             </div>
             <div className={styles.divider} />
             <div className={styles.buildRowTotal}>
-              <span>Recommended fee</span>
+              <span>Recommended Fee</span>
               <span>{formatMoney(totals.recommendedFee, currency)}</span>
             </div>
             {expensesTotal > 0 && (
               <>
                 <div className={styles.buildRow}>
-                  <span>+ Pass-through expenses</span>
+                  <span>+ Pass-Through Expenses</span>
                   <span>{formatMoney(expensesTotal, currency)}</span>
                 </div>
                 <div className={styles.divider} />
                 <div className={styles.buildRowTotal}>
-                  <span>Total quoted price</span>
+                  <span>Total Quoted Price</span>
                   <span>{formatMoney(grandTotal, currency)}</span>
                 </div>
               </>
@@ -180,7 +181,7 @@ export function SummaryVBPScreen({
           </Card>
 
           <Card
-            title="Before you propose"
+            title="Before You Propose"
             description="Company policy. Confirm each of these before sending the fee."
           >
             {CHECKS.map((item) => (
@@ -195,14 +196,14 @@ export function SummaryVBPScreen({
           </Card>
         </div>
 
-        <Card title="Break-even effort" description="Internal only. Never appears on the client proposal.">
+        <Card title="Break-Even Effort" description="Internal only. Never appears on the client proposal.">
           <div className={styles.buildRow}>
-            <span>Your effective day rate ({estimate.overheadRisk.overheadPct}% overhead)</span>
+            <span>Your Effective Day Rate ({estimate.overheadRisk.overheadPct}% Overhead)</span>
             <span>{formatMoney(breakEven.effectiveDayRate, currency)}</span>
           </div>
           <div className={styles.divider} />
           <div className={styles.buildRowTotal}>
-            <span>Break-even effort</span>
+            <span>Break-Even Effort</span>
             <span>{formatDays(breakEven.breakEvenDays)} d</span>
           </div>
           <p className={styles.kpiFoot}>
@@ -210,7 +211,7 @@ export function SummaryVBPScreen({
           </p>
         </Card>
 
-        <Card title="Suggested payment schedule" description="Pick the split that fits the engagement.">
+        <Card title="Suggested Payment Schedule" description="Pick the split that fits the engagement.">
           <div className={styles.splitPresetRow}>
             {PAYMENT_SPLIT_PRESETS.map((preset) => (
               <button
