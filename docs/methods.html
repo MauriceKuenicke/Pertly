@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Two ways to price a project | Pertly</title>
+  <meta name="description" content="Time & Materials vs. Value-Based Pricing: how Pertly's two pricing methods work, and which one fits your engagement." />
+
+  <meta property="og:title" content="Two ways to price a project | Pertly" />
+  <meta property="og:description" content="Time & Materials vs. Value-Based Pricing, explained." />
+  <meta property="og:image" content="https://mauricekuenicke.github.io/Pertly/assets/screenshots/vbp-fee-derivation.png" />
+  <meta property="og:type" content="website" />
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="index.html" class="wordmark">Pertly</a>
+
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle__bar"></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav">
+        <ul class="site-nav__links">
+          <li><a href="methods.html">Methods</a></li>
+          <li><a href="https://github.com/MauriceKuenicke/Pertly">GitHub</a></li>
+        </ul>
+        <a class="btn btn--primary btn--sm" href="https://github.com/MauriceKuenicke/Pertly/releases/latest">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="methods-page">
+      <div class="container">
+        <div class="methods-page__intro" data-reveal>
+          <span class="kicker">Two methods</span>
+          <h1>Two ways to price a project</h1>
+          <p>Every estimate in Pertly picks one of two methods. Both end in the same place: a number and a proposal. They just get there differently.</p>
+        </div>
+
+        <div class="method-block" data-reveal>
+          <div>
+            <h2>Time &amp; Materials</h2>
+            <p>You break the project into deliverables and estimate each one three ways: optimistic, most likely, pessimistic. Pertly turns that into an expected effort and a confidence range, then layers on overhead and a contingency buffer. You get a recommended budget and a not-to-exceed cap: a ceiling the client can hold you to, and you can hold yourself to.</p>
+            <div class="method-block__good-for">
+              <strong>Good for:</strong> exploratory work, scope that's likely to shift, anything where "we'll figure it out as we go" is an honest description of the engagement.
+            </div>
+          </div>
+          <div class="method-block__images">
+            <div class="browser-frame">
+              <div class="browser-frame__bar">
+                <span class="browser-frame__dot"></span><span class="browser-frame__dot"></span><span class="browser-frame__dot"></span>
+              </div>
+              <img src="assets/screenshots/tm-work-breakdown.png" alt="Time & Materials work breakdown table with a live cost build-up sidebar." width="1440" height="960" />
+            </div>
+            <div class="browser-frame">
+              <div class="browser-frame__bar">
+                <span class="browser-frame__dot"></span><span class="browser-frame__dot"></span><span class="browser-frame__dot"></span>
+              </div>
+              <img src="assets/screenshots/tm-cost-buildup.png" alt="Time & Materials cost build-up: fixed-price KPIs, a step-by-step cost build-up card, and a governance checklist." width="1440" height="960" />
+            </div>
+          </div>
+        </div>
+
+        <div class="method-block" data-reveal>
+          <div>
+            <h2>Value-Based Pricing</h2>
+            <p>You quantify what the problem is costing the client today (wasted time, errors, delayed revenue), then work out a conservative, moderate, and aggressive case for how much of that you'll recover. Your fee is a share of the conservative case, checked against a target return so the client is getting a good deal and you're not leaving money on the table. It lands as a tiered proposal, so the client picks a scope, not just a price.</p>
+            <div class="method-block__good-for">
+              <strong>Good for:</strong> work with a measurable business outcome, where the value you create is worth more than the hours it takes.
+            </div>
+          </div>
+          <div class="method-block__images">
+            <div class="browser-frame">
+              <div class="browser-frame__bar">
+                <span class="browser-frame__dot"></span><span class="browser-frame__dot"></span><span class="browser-frame__dot"></span>
+              </div>
+              <img src="assets/screenshots/vbp-fee-derivation.png" alt="Value-Based Pricing fee derivation: scenario cards, attribution and value-capture sliders, and a recommended fee." width="1440" height="960" />
+            </div>
+            <div class="browser-frame">
+              <div class="browser-frame__bar">
+                <span class="browser-frame__dot"></span><span class="browser-frame__dot"></span><span class="browser-frame__dot"></span>
+              </div>
+              <img src="assets/screenshots/vbp-client-tiers.png" alt="A client-facing Value-Based Pricing proposal showing three pricing tiers with descriptions and a payment schedule." width="1440" height="960" />
+            </div>
+          </div>
+        </div>
+
+        <div class="rule-of-thumb" data-reveal>
+          <h2>Which one do I use?</h2>
+          <p>Rule of thumb: if you can put a number on the value, price the value. If you can't, or the scope is too fuzzy to trust that number yet, price the effort. You're not locked in; every new estimate picks fresh.</p>
+        </div>
+
+        <a class="back-link" href="index.html">← Back to Pertly</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <a href="index.html" class="wordmark">Pertly</a>
+      <ul class="site-footer__links">
+        <li><a href="https://github.com/MauriceKuenicke/Pertly">GitHub</a></li>
+        <li><a href="https://github.com/MauriceKuenicke/Pertly/releases">Releases</a></li>
+        <li><a href="https://github.com/MauriceKuenicke/Pertly/blob/main/LICENSE">License</a></li>
+      </ul>
+      <p class="site-footer__privacy">No cookies, no analytics, no tracking: not on this page, not in the app.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
