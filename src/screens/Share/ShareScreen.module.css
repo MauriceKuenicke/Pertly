@@ -20,7 +20,7 @@
 
 .pageTitle {
   margin: 0;
-  font-size: 25px;
+  font-size: var(--fs-h1);
   font-weight: 800;
   color: var(--text-primary);
 }
@@ -74,9 +74,15 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
+  transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
 }
 
-.tabActive {
+.tab:hover {
+  border-color: var(--border-strong);
+}
+
+.tabActive,
+.tabActive:hover {
   border-color: var(--brand-primary);
   background: var(--brand-primary-subtle);
 }

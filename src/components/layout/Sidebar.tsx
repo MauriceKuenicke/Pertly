@@ -1,3 +1,4 @@
+import { IconList, IconPlus, IconSliders } from "../ui/Icon";
 import styles from "./Sidebar.module.css";
 
 interface SidebarProps {
@@ -16,17 +17,19 @@ export function Sidebar({ activeView, onGoToList, onNewEstimate, onGoToSettings 
       </div>
 
       <button className={styles.cta} onClick={onNewEstimate}>
-        <span className={styles.ctaPlus}>+</span>
+        <IconPlus width={14} height={14} strokeWidth={2.25} />
         <span>New Estimate</span>
       </button>
 
-      <span className={styles.sectionLabel}>WORKSPACE</span>
+      <span className={styles.sectionLabel}>Workspace</span>
 
       <button
         className={`${styles.navItem} ${activeView === "list" ? styles.navItemActive : ""}`}
         onClick={onGoToList}
       >
-        <span className={styles.iconBadge}>A</span>
+        <span className={styles.iconBadge}>
+          <IconList width={13} height={13} strokeWidth={2} />
+        </span>
         <span>All Estimates</span>
       </button>
 
@@ -34,7 +37,9 @@ export function Sidebar({ activeView, onGoToList, onNewEstimate, onGoToSettings 
         className={`${styles.navItem} ${activeView === "wizard" ? styles.navItemActive : ""}`}
         onClick={onNewEstimate}
       >
-        <span className={styles.iconBadge}>E</span>
+        <span className={styles.iconBadge}>
+          <IconPlus width={13} height={13} strokeWidth={2} />
+        </span>
         <span>New Estimate</span>
       </button>
 
@@ -45,7 +50,9 @@ export function Sidebar({ activeView, onGoToList, onNewEstimate, onGoToSettings 
           className={`${styles.navItem} ${activeView === "settings" ? styles.navItemActive : ""}`}
           onClick={onGoToSettings}
         >
-          <span className={styles.iconBadge}>S</span>
+          <span className={styles.iconBadge}>
+            <IconSliders width={13} height={13} strokeWidth={2} />
+          </span>
           <span>Settings</span>
         </button>
       )}

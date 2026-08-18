@@ -6,3 +6,4 @@ export { Card } from "./Card";
 export { Slider } from "./Slider";
 export { InfoTooltip } from "./InfoTooltip";
 export { Modal } from "./Modal";
+export { IconList, IconPlus, IconSliders, IconInfo } from "./Icon";

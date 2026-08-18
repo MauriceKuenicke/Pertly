@@ -30,7 +30,7 @@
 
 .title {
   margin: 0 0 6px;
-  font-size: 25px;
+  font-size: var(--fs-h1);
   font-weight: 800;
   color: var(--text-primary);
 }
@@ -126,10 +126,14 @@
   text-align: left;
   cursor: pointer;
   box-shadow: var(--shadow-card);
+  transition: border-color var(--duration-base) var(--ease-standard), box-shadow var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard);
 }
 
 .card:hover {
   border-color: var(--border-strong);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
 }
 
 .cardHead {
@@ -171,7 +175,7 @@
   flex-shrink: 0;
   padding: 3px 8px;
   border-radius: var(--radius-pill);
-  font-size: 10px;
+  font-size: var(--fs-micro);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -199,6 +203,7 @@
 .cardAmount {
   font-size: 16px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 

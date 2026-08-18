@@ -208,7 +208,7 @@ export function SummaryTMScreen({
             <div className={styles.divider} />
             <div className={styles.buildRowTotal}>
               <span>{isFixedPrice ? "Fixed Price" : "Recommended Budget"}</span>
-              <span>{formatMoney(quotedPrice, currency)}</span>
+              <span className={styles.buildRowTotalValue}>{formatMoney(quotedPrice, currency)}</span>
             </div>
             {expensesTotal > 0 && (
               <>
@@ -219,7 +219,7 @@ export function SummaryTMScreen({
                 <div className={styles.divider} />
                 <div className={styles.buildRowTotal}>
                   <span>Total Quoted Price</span>
-                  <span>{formatMoney(grandTotal, currency)}</span>
+                  <span className={styles.buildRowTotalValue}>{formatMoney(grandTotal, currency)}</span>
                 </div>
               </>
             )}
@@ -257,7 +257,7 @@ export function SummaryTMScreen({
             <div className={styles.milestoneRow}>
               {roleBreakdown.map((row) => (
                 <div className={styles.milestone} key={row.roleId}>
-                  <span className={styles.milestoneLabel}>{(row.roleName || "Untitled role").toUpperCase()}</span>
+                  <span className={styles.milestoneLabel}>{row.roleName || "Untitled role"}</span>
                   <span className={styles.milestoneAmount}>{formatMoney(row.cost, currency)}</span>
                   <span className={styles.milestonePct}>
                     {formatDays(row.days)} d at {formatMoney(row.dayRate, currency)}/day · {Math.round(row.pctOfCost)}%
@@ -286,7 +286,7 @@ export function SummaryTMScreen({
           <div className={styles.milestoneRow}>
             {milestones.map((m) => (
               <div className={styles.milestone} key={m.label}>
-                <span className={styles.milestoneLabel}>{m.label.toUpperCase()}</span>
+                <span className={styles.milestoneLabel}>{m.label}</span>
                 <span className={styles.milestoneAmount}>{formatMoney(m.amount, currency)}</span>
                 <span className={styles.milestonePct}>{m.pct}%</span>
               </div>

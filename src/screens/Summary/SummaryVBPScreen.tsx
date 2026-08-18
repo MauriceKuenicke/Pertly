@@ -163,7 +163,7 @@ export function SummaryVBPScreen({
             <div className={styles.divider} />
             <div className={styles.buildRowTotal}>
               <span>Recommended Fee</span>
-              <span>{formatMoney(totals.recommendedFee, currency)}</span>
+              <span className={styles.buildRowTotalValue}>{formatMoney(totals.recommendedFee, currency)}</span>
             </div>
             {expensesTotal > 0 && (
               <>
@@ -174,7 +174,7 @@ export function SummaryVBPScreen({
                 <div className={styles.divider} />
                 <div className={styles.buildRowTotal}>
                   <span>Total Quoted Price</span>
-                  <span>{formatMoney(grandTotal, currency)}</span>
+                  <span className={styles.buildRowTotalValue}>{formatMoney(grandTotal, currency)}</span>
                 </div>
               </>
             )}
@@ -204,7 +204,7 @@ export function SummaryVBPScreen({
           <div className={styles.divider} />
           <div className={styles.buildRowTotal}>
             <span>Break-Even Effort</span>
-            <span>{formatDays(breakEven.breakEvenDays)} d</span>
+            <span className={styles.buildRowTotalValue}>{formatDays(breakEven.breakEvenDays)} d</span>
           </div>
           <p className={styles.kpiFoot}>
             Spend more than this delivering the work and you're effectively earning less than your normal day rate.
@@ -229,7 +229,7 @@ export function SummaryVBPScreen({
           <div className={styles.milestoneRow}>
             {milestones.map((m) => (
               <div className={styles.milestone} key={m.label}>
-                <span className={styles.milestoneLabel}>{m.label.toUpperCase()}</span>
+                <span className={styles.milestoneLabel}>{m.label}</span>
                 <span className={styles.milestoneAmount}>{formatMoney(m.amount, currency)}</span>
                 <span className={styles.milestonePct}>{m.pct}%</span>
               </div>

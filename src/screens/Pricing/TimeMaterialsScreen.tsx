@@ -256,7 +256,9 @@ export function TimeMaterialsScreen({
             <div className={styles.divider} />
             <div className={styles.summaryRowBig}>
               <span>{timeMaterials.isFixedPrice ? "Fixed Price" : "Recommended Budget"}</span>
-              <span>{formatMoney(timeMaterials.isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget, currency)}</span>
+              <span className={styles.summaryRowBigValue}>
+                {formatMoney(timeMaterials.isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget, currency)}
+              </span>
             </div>
             {timeMaterials.isFixedPrice && (
               <div className={styles.summaryRow}>

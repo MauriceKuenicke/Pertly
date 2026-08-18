@@ -6,11 +6,9 @@
 }
 
 .label {
-  font-size: 11px;
+  font-size: var(--fs-label);
   font-weight: 600;
-  letter-spacing: 0.4px;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
+  color: var(--text-secondary);
 }
 
 .inputWrap {
@@ -22,6 +20,11 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.inputWrap:hover {
+  border-color: var(--border-strong);
 }
 
 .inputWrap:focus-within {
@@ -45,8 +48,13 @@
   border: none;
   outline: none;
   background: transparent;
-  font-size: 14px;
+  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
+}
+
+.input:focus-visible {
+  box-shadow: none;
 }
 
 .affix {
@@ -56,11 +64,11 @@
 }
 
 .helpText {
-  font-size: 11.5px;
+  font-size: var(--fs-caption);
   color: var(--text-tertiary);
 }
 
 .errorText {
-  font-size: 11.5px;
+  font-size: var(--fs-caption);
   color: var(--semantic-danger);
 }

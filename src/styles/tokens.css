@@ -15,7 +15,7 @@
   /* Text */
   --text-primary: #2a1116;
   --text-secondary: #6b5450;
-  --text-tertiary: #9c8480;
+  --text-tertiary: #85706b;
   --text-inverse: #ffffff;
   --text-inverse-muted: #b99490;
   --text-inverse-faint: #9c7d79;
@@ -42,11 +42,20 @@
   --titlebar-bg: #ede3e0;
   --titlebar-border: #dccac6;
   --step-inactive-bg: #efe6e3;
-  --step-inactive-text: #ac9793;
+  --step-inactive-text: #6b5450;
   --step-connector: #e5d9d6;
 
   /* Typography */
   --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Type scale */
+  --fs-display: 34px; /* hero output numbers: recommended fee/budget */
+  --fs-h1: 26px; /* screen/page titles */
+  --fs-h2: 16px; /* card + section titles */
+  --fs-body: 14px; /* default paragraph */
+  --fs-label: 12px; /* field labels, sentence case */
+  --fs-caption: 11.5px; /* hint/help/meta text */
+  --fs-micro: 10.5px; /* uppercase badges/tags only */
 
   /* Radius */
   --radius-sm: 6px;
@@ -57,5 +66,14 @@
 
   /* Shadow */
   --shadow-card: 0 1px 2px rgba(42, 17, 22, 0.04);
+  --shadow-card-hover: 0 6px 16px rgba(42, 17, 22, 0.08), 0 1px 2px rgba(42, 17, 22, 0.05);
   --shadow-popover: 0 8px 24px rgba(42, 17, 22, 0.16);
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(168, 86, 78, 0.35);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --duration-fast: 0.12s;
+  --duration-base: 0.18s;
 }

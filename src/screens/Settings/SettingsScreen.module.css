@@ -49,7 +49,7 @@
 
 .title {
   margin: 0 0 6px;
-  font-size: 25px;
+  font-size: var(--fs-h1);
   font-weight: 800;
   color: var(--text-primary);
 }
@@ -97,11 +97,9 @@
 }
 
 .selectLabel {
-  font-size: 11px;
+  font-size: var(--fs-label);
   font-weight: 600;
-  letter-spacing: 0.4px;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
+  color: var(--text-secondary);
 }
 
 .select {
@@ -112,6 +110,17 @@
   border-radius: var(--radius-md);
   font-size: 14px;
   color: var(--text-primary);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.select:hover {
+  border-color: var(--border-strong);
+}
+
+.select:focus-visible {
+  box-shadow: none;
+  border: 2px solid var(--brand-primary);
+  padding: 9px 13px;
 }
 
 /* Blended vs. role-based rate mode toggle */
@@ -133,9 +142,15 @@
   border: 1.5px solid var(--border-default);
   border-radius: var(--radius-lg);
   text-align: left;
+  transition: border-color var(--duration-base) var(--ease-standard), background-color var(--duration-base) var(--ease-standard);
 }
 
-.rateModeOptionActive {
+.rateModeOption:hover {
+  border-color: var(--border-strong);
+}
+
+.rateModeOptionActive,
+.rateModeOptionActive:hover {
   background: var(--brand-primary-subtle);
   border-color: var(--brand-primary);
 }
@@ -218,6 +233,7 @@
   background: transparent;
   outline: none;
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
   -moz-appearance: textfield;
 }
@@ -243,12 +259,14 @@
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: #b29d99;
+  color: var(--text-tertiary);
   font-size: 14px;
   font-weight: 700;
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
 }
 .removeBtn:hover {
   background: var(--border-default);
+  color: var(--semantic-danger);
 }
 
 .addRow {

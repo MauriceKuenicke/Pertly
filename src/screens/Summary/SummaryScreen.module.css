@@ -13,7 +13,7 @@
 
 .pageTitle {
   margin: 0;
-  font-size: 25px;
+  font-size: var(--fs-h1);
   font-weight: 800;
   color: var(--text-primary);
 }
@@ -39,18 +39,21 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
+  transition: box-shadow var(--duration-base) var(--ease-standard);
 }
 
 .kpiLabel {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--fs-micro);
+  font-weight: 700;
   letter-spacing: 0.4px;
+  text-transform: uppercase;
   color: var(--text-tertiary);
 }
 
 .kpiValue {
-  font-size: 28px;
+  font-size: var(--fs-display);
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 
@@ -76,6 +79,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
 }
 
@@ -86,6 +90,7 @@
   border-top: 1px dashed var(--border-default);
   font-size: 13.5px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 
@@ -102,8 +107,10 @@
   font-weight: 700;
   color: var(--text-primary);
 }
-.buildRowTotal span:last-child {
+
+.buildRowTotalValue {
   font-size: 19px;
+  font-variant-numeric: tabular-nums;
 }
 
 .govRow {
@@ -163,6 +170,7 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
+  transition: border-color var(--duration-base) var(--ease-standard), background-color var(--duration-base) var(--ease-standard);
 }
 
 .tierCardRecommended {
@@ -196,6 +204,7 @@
 .tierCardPrice {
   font-size: 19px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 
@@ -227,9 +236,15 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   text-align: left;
+  transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
 }
 
-.splitPresetActive {
+.splitPreset:hover {
+  border-color: var(--border-strong);
+}
+
+.splitPresetActive,
+.splitPresetActive:hover {
   border-color: var(--brand-primary);
   background: var(--brand-primary-subtle);
 }
@@ -268,19 +283,22 @@
 }
 
 .milestoneLabel {
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: var(--fs-micro);
+  font-weight: 700;
   letter-spacing: 0.4px;
+  text-transform: uppercase;
   color: var(--text-tertiary);
 }
 
 .milestoneAmount {
   font-size: 17px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 
 .milestonePct {
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
   color: var(--text-tertiary);
 }

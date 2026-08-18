@@ -38,6 +38,26 @@ button {
   cursor: pointer;
 }
 
+/* !important is deliberate: many components set their own box-shadow (card
+   elevation, popovers), and focus visibility must never lose that
+   specificity/order fight - a missing focus ring is a real accessibility
+   regression, not a cosmetic one. */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

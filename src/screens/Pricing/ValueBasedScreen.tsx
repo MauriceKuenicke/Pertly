@@ -137,7 +137,7 @@ export function ValueBasedScreen({
             <div className={styles.driverGrid}>
               {valueBased.valueDrivers.map((driver) => (
                 <label className={styles.driverField} key={driver.id}>
-                  <span className={styles.driverLabel}>{driver.label.toUpperCase()}</span>
+                  <span className={styles.driverLabel}>{driver.label}</span>
                   <div className={styles.driverInputWrap}>
                     <span className={styles.affix}>{currencySymbol(currency)}</span>
                     <input
@@ -261,7 +261,7 @@ export function ValueBasedScreen({
                       onChange={(e) => updateTier(tier.id, { price: Number(e.target.value) })}
                     />
                   </div>
-                  <span className={styles.tierDescLabel}>CLIENT-FACING DESCRIPTION</span>
+                  <span className={styles.tierDescLabel}>Client-facing description</span>
                   <textarea
                     className={styles.tierDesc}
                     rows={2}

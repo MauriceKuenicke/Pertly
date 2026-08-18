@@ -43,7 +43,7 @@
 
 .docTitle {
   margin: 0;
-  font-size: 21px;
+  font-size: var(--fs-h1);
   font-weight: 800;
   color: var(--text-primary);
 }
@@ -70,8 +70,8 @@
 }
 
 .metaLabel {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--fs-micro);
+  font-weight: 700;
   letter-spacing: 0.4px;
   color: var(--text-tertiary);
 }
@@ -79,6 +79,7 @@
 .metaValue {
   font-size: 13px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 
@@ -98,6 +99,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 .table th {
@@ -181,6 +183,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 .buildRowSub {
@@ -190,6 +193,7 @@
   border-top: 1px dashed var(--border-default);
   font-size: 13px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 
@@ -200,6 +204,7 @@
   border-top: 1px solid var(--border-strong);
   font-size: 14px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 
@@ -219,8 +224,9 @@
 }
 
 .valueStoryAmount {
-  font-size: 19px;
+  font-size: 22px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 
@@ -263,13 +269,14 @@
   border-radius: var(--radius-pill);
   background: var(--brand-primary);
   color: var(--text-inverse);
-  font-size: 9px;
+  font-size: var(--fs-micro);
   font-weight: 700;
 }
 
 .tierColPrice {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 

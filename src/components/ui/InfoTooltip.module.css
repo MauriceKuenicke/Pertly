@@ -16,12 +16,10 @@
   border-radius: 50%;
   background: var(--bg-subtle);
   color: var(--text-tertiary);
-  font-size: 10px;
-  font-weight: 700;
-  font-style: italic;
-  font-family: Georgia, "Times New Roman", serif;
   line-height: 1;
   cursor: help;
+  transition: background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
 }
 
 .icon:hover,

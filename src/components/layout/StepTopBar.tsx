@@ -39,9 +39,10 @@ export function StepTopBar({
           const isDone = step.n <= furthestStep && step.n !== currentStep;
           const isActive = step.n === currentStep;
           const clickable = Boolean(onStepClick) && step.n <= furthestStep;
+          const connectorFilled = step.n <= furthestStep;
           return (
             <div className={styles.stepGroup} key={step.n}>
-              {i > 0 && <span className={styles.connector} />}
+              {i > 0 && <span className={`${styles.connector} ${connectorFilled ? styles.connectorFilled : ""}`} />}
               <button
                 className={styles.step}
                 onClick={() => clickable && onStepClick?.(step.n)}

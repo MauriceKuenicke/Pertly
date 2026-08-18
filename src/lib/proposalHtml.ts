@@ -38,39 +38,39 @@ function esc(value: string): string {
 
 const STYLE = `
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #2a1116; margin: 0; padding: 48px 56px; }
-  h1 { font-size: 22px; font-weight: 800; margin: 0 0 20px; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #2a1116; margin: 0; padding: 48px 56px; font-variant-numeric: tabular-nums; }
+  h1 { font-size: 26px; font-weight: 800; margin: 0 0 20px; }
   h2 { font-size: 14px; font-weight: 700; margin: 24px 0 10px; }
-  p { line-height: 1.6; font-size: 13px; color: #6b5450; }
+  p { line-height: 1.6; font-size: 13.5px; color: #6b5450; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-  th { text-align: left; font-size: 10.5px; font-weight: 600; color: #9c8480; padding: 8px 4px; border-bottom: 1px solid #e5d9d6; }
+  th { text-align: left; font-size: 10.5px; font-weight: 600; color: #85706b; padding: 8px 4px; border-bottom: 1px solid #e5d9d6; }
   td { padding: 10px 4px; border-bottom: 1px solid #e5d9d6; color: #6b5450; }
   .r { text-align: right; }
   .total td { border-top: 1.5px solid #d4c2be; border-bottom: none; font-weight: 700; color: #2a1116; }
   .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px; background: #f1e8e5; border-radius: 10px; margin: 16px 0; }
   .meta div span { display: block; }
-  .meta .label { font-size: 10px; font-weight: 600; letter-spacing: 0.4px; color: #9c8480; margin-bottom: 3px; }
-  .meta .value { font-size: 13px; font-weight: 600; color: #2a1116; }
+  .label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.4px; color: #85706b; margin-bottom: 3px; }
+  .value { font-size: 13px; font-weight: 600; color: #2a1116; }
   .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
-  .row.total { font-weight: 700; color: #2a1116; border-top: 1px solid #d4c2be; padding-top: 8px; margin-top: 4px; }
+  .row.total { font-size: 14px; font-weight: 700; color: #2a1116; border-top: 1px solid #d4c2be; padding-top: 8px; margin-top: 4px; }
   .banner { padding: 12px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 600; margin-bottom: 16px; }
   .banner.danger { background: #f6e3e1; color: #bc4038; }
   .banner.brand { background: #f4e4e1; color: #a8564e; }
   .header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #e5d9d6; margin-bottom: 20px; }
-  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #a8564e; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #a8564e; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; }
   .preparer { margin: 0; font-size: 13px; font-weight: 600; color: #2a1116; }
-  .valid { margin: 2px 0 0; font-size: 12px; color: #9c8480; }
+  .valid { margin: 2px 0 0; font-size: 12px; color: #85706b; }
   .bullets p { margin: 4px 0; font-size: 12.5px; }
-  .sub { font-size: 11px; color: #9c8480; margin-top: 2px; }
+  .sub { font-size: 11px; color: #85706b; margin-top: 2px; }
   .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 8px; }
   .tier { border: 1px solid #e5d9d6; border-radius: 10px; padding: 16px; }
   .tier .name { font-weight: 700; font-size: 13.5px; }
-  .tier .price { font-size: 18px; font-weight: 800; display: block; margin-top: 6px; }
-  .tier .duration { font-size: 11.5px; color: #9c8480; }
-  .tier .desc { font-size: 11.5px; color: #6b5450; margin-top: 6px; }
+  .tier .price { font-size: 20px; font-weight: 800; display: block; margin-top: 6px; }
+  .tier .duration { font-size: 11.5px; color: #85706b; }
+  .tier .desc { font-size: 11.5px; line-height: 1.5; color: #6b5450; margin-top: 6px; }
   .value-story { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
   .value-story .item { background: #f1e8e5; border-radius: 10px; padding: 16px; }
-  .value-story .amount { font-size: 19px; font-weight: 800; display: block; margin-top: 4px; }
+  .value-story .amount { font-size: 22px; font-weight: 800; display: block; margin-top: 4px; }
 `;
 
 function wrap(title: string, body: string): string {
@@ -259,8 +259,8 @@ function clientOverviewVbpHtml(estimate: Estimate): string {
     ])}
     <p>This proposal prices the engagement as a share of the value it creates for your business, not hours spent. Below is a conservative estimate of that value, and three ways to scope the work around it.</p>
     <div class="value-story">
-      <div class="item"><span class="label" style="font-size:10px;font-weight:600;color:#9c8480">COST OF STAYING AS-IS</span><span class="amount">${formatMoney(totals.annualProblemCost, currency)} / yr</span><p style="margin:4px 0 0;font-size:11.5px">What the current process costs you today, left unaddressed.</p></div>
-      <div class="item"><span class="label" style="font-size:10px;font-weight:600;color:#9c8480">VALUE WE'LL CONSERVATIVELY CREATE</span><span class="amount">${formatMoney(totals.conservativeValue, currency)} / yr</span><p style="margin:4px 0 0;font-size:11.5px">A conservative estimate. Moderate and best-case scenarios run higher.</p></div>
+      <div class="item"><span class="label">COST OF STAYING AS-IS</span><span class="amount">${formatMoney(totals.annualProblemCost, currency)} / yr</span><p style="margin:4px 0 0;font-size:11.5px">What the current process costs you today, left unaddressed.</p></div>
+      <div class="item"><span class="label">VALUE WE'LL CONSERVATIVELY CREATE</span><span class="amount">${formatMoney(totals.conservativeValue, currency)} / yr</span><p style="margin:4px 0 0;font-size:11.5px">A conservative estimate. Moderate and best-case scenarios run higher.</p></div>
     </div>
     <h2>Three Ways to Scope This</h2>
     <div class="tiers">

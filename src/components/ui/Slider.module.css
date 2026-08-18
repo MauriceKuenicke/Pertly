@@ -20,6 +20,7 @@
 .value {
   font-size: 13px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--brand-primary);
 }
 
@@ -47,6 +48,15 @@
   border: 3px solid var(--bg-surface);
   box-shadow: 0 1px 3px rgba(42, 17, 22, 0.3);
   cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.input:hover::-webkit-slider-thumb {
+  transform: scale(1.1);
+}
+
+.input:active::-webkit-slider-thumb {
+  transform: scale(1.05);
 }
 
 .rangeLabels {
