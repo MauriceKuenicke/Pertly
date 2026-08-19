@@ -117,7 +117,7 @@ export function SummaryVBPScreen({
             <span className={styles.kpiValue}>
               {totals.clientRoi.toFixed(1)} <span className={styles.kpiUnit}>×</span>
             </span>
-            <span className={styles.kpiFoot}>Company target: 5–10× per company policy</span>
+            <span className={styles.kpiFoot}>Target range: 5–10×</span>
           </div>
         </div>
 
@@ -182,7 +182,7 @@ export function SummaryVBPScreen({
 
           <Card
             title="Before You Propose"
-            description="Company policy. Confirm each of these before sending the fee."
+            description="Confirm each of these before sending the fee."
           >
             {CHECKS.map((item) => (
               <div className={styles.govRow} key={item.title}>

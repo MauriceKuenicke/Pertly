@@ -304,7 +304,7 @@ export function ValueBasedScreen({
               Client ROI: {totals.clientRoi.toFixed(1)}×
             </div>
             <p className={styles.roiTarget}>
-              Company target: {ROI_TARGET_MIN}–{ROI_TARGET_MAX}×. Below it, the fee is underpriced; above it, revisit
+              Target range: {ROI_TARGET_MIN}–{ROI_TARGET_MAX}×. Below it, the fee is underpriced; above it, revisit
               attribution or value capture rate.
             </p>
           </Card>

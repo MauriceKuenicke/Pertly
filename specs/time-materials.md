@@ -85,7 +85,7 @@ The client-facing proposal never reveals a day rate — not even in role-based m
 
 The internal view additionally shows: the day rate (or full role roster and rates), the overhead/contingency percentages, the not-to-exceed cap's basis, a role-by-role cost breakdown, and the full optimistic/likely/pessimistic/expected/uncertainty table per deliverable.
 
-Every T&M proposal also carries a fixed **governance checklist** — not-to-exceed alerting, reporting cadence, backlog ownership, change-handling process, and attaching assumptions/exclusions — presented as standard company policy for how the engagement should be run day to day.
+Every T&M proposal also carries a fixed **governance checklist** — not-to-exceed alerting, reporting cadence, backlog ownership, change-handling process, and attaching assumptions/exclusions — presented as recommended practice for how the engagement should be run day to day. The copy stays neutral: it never invokes a company or an internal policy reference, since the user setting these terms is the one reading them.
 
 Everything above describes variable/actuals mode, T&M's default. Fixed-price mode (below) changes several of these.
 

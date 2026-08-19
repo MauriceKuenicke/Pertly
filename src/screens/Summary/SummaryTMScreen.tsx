@@ -72,7 +72,7 @@ export function SummaryTMScreen({
   const riskCoveragePct = estimate.timeMaterials.fixedPriceRiskCoveragePct;
   // Fixed-price mode quotes a risk-adjusted figure between the expected
   // case and the full pessimistic case (see fixedPriceQuote in calc.ts),
-  // instead of the plain expected-case recommended budget — the freelancer
+  // instead of the plain expected-case recommended budget — the user
   // absorbs any overrun beyond it, so how much of the worst case to price
   // in is a deliberate per-estimate choice (the risk coverage slider on
   // the Assumptions step).
@@ -227,7 +227,7 @@ export function SummaryTMScreen({
 
           <Card
             title="Governance Checklist"
-            description="Agree these with the client before you start. Company policy §4.4."
+            description="Agree these with the client before you start. Recommended practice for every engagement."
           >
             {governance.map((item) => (
               <div className={styles.govRow} key={item.title}>

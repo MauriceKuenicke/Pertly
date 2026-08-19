@@ -42,7 +42,7 @@ Each scenario's dollar value = Annual Problem Cost × its percentage.
 
 ### 4. Sanity-check the fee
 
-**Client ROI** = Conservative Value ÷ Fee. Target band: **5–10×**. Below 5× the fee is underpriced (revisit attribution or value capture rate); above 10× the client is being asked to pay more than the value story supports. This target band is fixed Pertly policy, not user-configurable.
+**Client ROI** = Conservative Value ÷ Fee. Target band: **5–10×**. Below 5× the fee is underpriced (revisit attribution or value capture rate); above 10× the client is being asked to pay more than the value story supports. This target band is a fixed Pertly default, not user-configurable. It is surfaced in the UI as a neutral "target range", never as a company or organizational policy.
 
 **Break-even effort** (internal only, never shown to the client) = Fee ÷ effective day rate (the freelancer's normal day rate marked up by overhead only, not contingency — contingency buffers estimation uncertainty, which doesn't apply the same way to a value-based fixed fee). This answers "how many days of delivery work does this fee cover before I'm effectively earning less than my normal rate" — an internal profitability guardrail against overservicing a fixed-fee engagement.
 
@@ -76,7 +76,7 @@ The client-facing proposal tells the value story — the annual cost of staying 
 
 The internal view additionally shows: the per-driver breakdown behind the annual problem cost, the conservative/attribution/capture-rate percentages, the full fee build-up, the target ROI band, break-even effort, and each tier's price expressed as a multiple of the recommended tier.
 
-Every VBP proposal also carries a fixed **"before you propose" checklist** before it's finalized: the client agreed to the value number themselves (not just accepted the freelancer's), the fee is anchored to the conservative scenario, the assumptions behind the value calculation are written down, and the fee has been checked against the 5–10× ROI target.
+Every VBP proposal also carries a fixed **"before you propose" checklist** before it's finalized: the client agreed to the value number themselves (not just accepted the user's), the fee is anchored to the conservative scenario, the assumptions behind the value calculation are written down, and the fee has been checked against the 5–10× ROI target.
 
 ## Business rules & decisions (the "why")
 

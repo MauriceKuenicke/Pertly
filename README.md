@@ -2,7 +2,7 @@
 
 **Price projects with numbers you can defend, not gut feel.**
 
-Pertly is a local-first desktop app for freelancers and small agencies who are tired of guessing at project pricing. Instead of a fragile spreadsheet you're afraid to touch, it walks you through a focused 4-step wizard and hands you back a number you can stand behind, plus a polished proposal ready to send.
+Pertly is a local-first desktop app for anyone who quotes client projects and is tired of guessing at the price. Instead of a fragile spreadsheet you're afraid to touch, it walks you through a focused 4-step wizard and hands you back a number you can stand behind, plus a polished proposal ready to send.
 
 Price it however fits the engagement:
 

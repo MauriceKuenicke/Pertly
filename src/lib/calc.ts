@@ -144,7 +144,7 @@ export function calcTimeMaterials(
 
   // Fixed-price mode's quote baseline: interpolates linearly between the
   // expected case and the full pessimistic case before the same
-  // overhead/contingency markup is applied, so a freelancer can choose how
+  // overhead/contingency markup is applied, so the user can choose how
   // much of the worst case to price in rather than always quoting the full
   // pessimistic figure (which is what happens at 100%). At 0% this chain is
   // identical to the recommendedBudget build-up above; at 100% it's
@@ -316,7 +316,7 @@ export interface BreakEvenEffort {
 
 /**
  * How many days of delivery effort the recommended fee "buys" at the
- * freelancer's normal effective day rate (day rate marked up by overhead).
+ * user's normal effective day rate (day rate marked up by overhead).
  * A rough internal profitability check for value-based pricing: spend more
  * than this on delivery and you're effectively earning less than your
  * normal day rate. Never shown to the client, since it reasons about cost
