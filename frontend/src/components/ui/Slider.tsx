@@ -9,10 +9,13 @@ interface SliderProps {
   step?: number;
   onChange: (value: number) => void;
   formatValue?: (value: number) => string;
+  /** Formats the min/max labels under the track; defaults to formatValue. */
+  formatBound?: (value: number) => string;
 }
 
-export function Slider({ label, helpText, value, min, max, step = 1, onChange, formatValue }: SliderProps) {
+export function Slider({ label, helpText, value, min, max, step = 1, onChange, formatValue, formatBound }: SliderProps) {
   const pct = ((value - min) / (max - min)) * 100;
+  const formatRangeLabel = formatBound ?? formatValue;
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
@@ -30,8 +33,8 @@ export function Slider({ label, helpText, value, min, max, step = 1, onChange, f
         onChange={(e) => onChange(Number(e.target.value))}
       />
       <div className={styles.rangeLabels}>
-        <span>{formatValue ? formatValue(min) : min}</span>
-        <span>{formatValue ? formatValue(max) : max}</span>
+        <span>{formatRangeLabel ? formatRangeLabel(min) : min}</span>
+        <span>{formatRangeLabel ? formatRangeLabel(max) : max}</span>
       </div>
       {helpText && <p className={styles.help}>{helpText}</p>}
     </div>

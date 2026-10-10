@@ -1,6 +1,6 @@
 import type { Estimate } from "../../types/estimate";
 import { allocateBudgetByPackage, calcPaymentMilestones, calcTimeMaterials, sumExpenses } from "../../lib/calc";
-import { formatMoney } from "../../lib/currency";
+import { formatDeduction, formatMoney } from "../../lib/currency";
 import { formatDate, todayPlusDays } from "../../lib/date";
 import { ExpensesSection, PaymentScheduleSection } from "./ProposalExtras";
 import styles from "./ProposalDoc.module.css";
@@ -14,8 +14,10 @@ export function ClientOverviewTM({ estimate }: Props) {
   const preparerName = estimate.projectDetails.preparerName;
   const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
   const isFixedPrice = estimate.timeMaterials.isFixedPrice;
-  const quotedPrice = isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget;
-  const allocations = allocateBudgetByPackage(totals, quotedPrice);
+  const quotedPrice = totals.quotedPrice;
+  const hasDiscount = totals.discountAmount > 0;
+  // Work packages are shown at their undiscounted share; the discount is its own line below them.
+  const allocations = allocateBudgetByPackage(totals, totals.listPrice);
   const validUntil = formatDate(todayPlusDays(14));
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = quotedPrice + expensesTotal;
@@ -76,6 +78,18 @@ export function ClientOverviewTM({ estimate }: Props) {
               <td className={styles.tableRight}>{formatMoney(row.amount, currency)}</td>
             </tr>
           ))}
+          {hasDiscount && (
+            <>
+              <tr className={styles.tableSubtotal}>
+                <td>Subtotal</td>
+                <td className={styles.tableRight}>{formatMoney(totals.listPrice, currency)}</td>
+              </tr>
+              <tr className={styles.tableDiscount}>
+                <td>Discount ({totals.discountPct}%)</td>
+                <td className={styles.tableRight}>{formatDeduction(totals.discountAmount, currency)}</td>
+              </tr>
+            </>
+          )}
           <tr className={styles.tableTotal}>
             <td>{isFixedPrice ? "Fixed Price" : "Estimated Investment"}</td>
             <td className={styles.tableRight}>{formatMoney(quotedPrice, currency)}</td>
@@ -86,7 +100,7 @@ export function ClientOverviewTM({ estimate }: Props) {
       <div className={styles.capNote}>
         {isFixedPrice
           ? "📌 Fixed price — the total above won't change once agreed, regardless of hours worked."
-          : `🔒 Not-to-exceed cap: ${formatMoney(totals.notToExceedCap + expensesTotal, currency)}. You will never be billed above this.`}
+          : `🔒 Not-to-exceed cap: ${formatMoney(totals.discountedNotToExceedCap + expensesTotal, currency)}. You will never be billed above this.`}
       </div>
 
       <ExpensesSection expenses={estimate.expenses} currency={currency} />

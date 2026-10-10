@@ -26,7 +26,10 @@ function pkg(overrides: Partial<WorkPackage> = {}): WorkPackage {
 function tm(
   workPackages: WorkPackage[],
   overrides: Partial<
-    Pick<TimeMaterialsData, "useRoleBasedPricing" | "roles" | "paymentSplit" | "isFixedPrice" | "fixedPriceRiskCoveragePct">
+    Pick<
+      TimeMaterialsData,
+      "useRoleBasedPricing" | "roles" | "paymentSplit" | "isFixedPrice" | "fixedPriceRiskCoveragePct" | "discountPct"
+    >
   > = {},
 ): TimeMaterialsData {
   return {
@@ -36,6 +39,7 @@ function tm(
     paymentSplit: [],
     isFixedPrice: false,
     fixedPriceRiskCoveragePct: 30,
+    discountPct: 0,
     ...overrides,
   };
 }
@@ -272,6 +276,68 @@ describe("calcTimeMaterials", () => {
       overheadRisk,
     );
     expect(totals.rows[0].dayRate).toBe(rateEffort.dayRate);
+  });
+});
+
+describe("calcTimeMaterials discount", () => {
+  const rateEffort: RateEffort = { dayRate: 100, workingHoursPerDay: 8 };
+  const overheadRisk: OverheadRisk = { overheadPct: 20, contingencyPct: 10 };
+  // PERT (0 + 4*2 + 4) / 6 = 2 expected days, 4 pessimistic, at 100/day: base 200, pessimistic 400.
+  const packages = [pkg({ optimisticDays: 0, likelyDays: 2, pessimisticDays: 4 })];
+
+  it("is a no-op at the 0% default", () => {
+    const totals = calcTimeMaterials(tm(packages), rateEffort, overheadRisk);
+    expect(totals.discountAmount).toBe(0);
+    expect(totals.listPrice).toBeCloseTo(totals.recommendedBudget);
+    expect(totals.quotedPrice).toBeCloseTo(totals.recommendedBudget);
+    expect(totals.discountedNotToExceedCap).toBeCloseTo(totals.notToExceedCap);
+  });
+
+  it("takes the percentage of the delivery subtotal and subtracts it after contingency", () => {
+    const totals = calcTimeMaterials(tm(packages, { discountPct: 10 }), rateEffort, overheadRisk);
+    // subtotal 200 * 1.2 = 240; contingency on the full subtotal: 24; list 264.
+    expect(totals.discountBase).toBeCloseTo(240);
+    expect(totals.discountAmount).toBeCloseTo(24);
+    expect(totals.contingencyAmount).toBeCloseTo(24);
+    expect(totals.listPrice).toBeCloseTo(264);
+    expect(totals.quotedPrice).toBeCloseTo(240);
+    // The pre-discount figures stay untouched for the build-up display.
+    expect(totals.recommendedBudget).toBeCloseTo(264);
+  });
+
+  it("lowers the not-to-exceed cap by the same amount as the quote", () => {
+    const totals = calcTimeMaterials(tm(packages, { discountPct: 25 }), rateEffort, overheadRisk);
+    expect(totals.notToExceedCap - totals.discountedNotToExceedCap).toBeCloseTo(totals.discountAmount);
+    expect(totals.discountedNotToExceedCap).toBeGreaterThanOrEqual(totals.quotedPrice);
+  });
+
+  it("uses the risk-adjusted subtotal and fixed price in fixed-price mode", () => {
+    const totals = calcTimeMaterials(
+      tm(packages, { isFixedPrice: true, fixedPriceRiskCoveragePct: 50, discountPct: 10 }),
+      rateEffort,
+      overheadRisk,
+    );
+    // risk-adjusted cost 300, subtotal 360, fixed price 396.
+    expect(totals.discountBase).toBeCloseTo(360);
+    expect(totals.discountAmount).toBeCloseTo(36);
+    expect(totals.listPrice).toBeCloseTo(396);
+    expect(totals.quotedPrice).toBeCloseTo(360);
+  });
+
+  it("never goes negative and keeps cap >= quote even at 100%", () => {
+    const totals = calcTimeMaterials(tm(packages, { discountPct: 100 }), rateEffort, overheadRisk);
+    // Only the contingency remains.
+    expect(totals.quotedPrice).toBeCloseTo(totals.contingencyAmount);
+    expect(totals.quotedPrice).toBeGreaterThanOrEqual(0);
+    expect(totals.discountedNotToExceedCap).toBeGreaterThanOrEqual(totals.quotedPrice);
+  });
+
+  it("clamps out-of-range values and tolerates a missing field", () => {
+    expect(calcTimeMaterials(tm(packages, { discountPct: 150 }), rateEffort, overheadRisk).discountPct).toBe(100);
+    expect(calcTimeMaterials(tm(packages, { discountPct: -5 }), rateEffort, overheadRisk).discountPct).toBe(0);
+    const legacy = { ...tm(packages) } as Partial<TimeMaterialsData>;
+    delete legacy.discountPct;
+    expect(calcTimeMaterials(legacy as TimeMaterialsData, rateEffort, overheadRisk).discountAmount).toBe(0);
   });
 });
 

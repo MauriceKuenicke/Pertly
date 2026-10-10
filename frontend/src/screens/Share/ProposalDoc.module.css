@@ -127,6 +127,17 @@
   color: var(--text-tertiary);
 }
 
+.tableSubtotal td {
+  border-top: 1px solid var(--border-strong);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tableDiscount td {
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
 .tableTotal td {
   border-bottom: none;
   border-top: 1px solid var(--border-strong);

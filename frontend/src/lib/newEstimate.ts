@@ -54,6 +54,8 @@ export function createEstimate(settings: Settings): Estimate {
       // pessimistic-case coverage folded in, rather than either extreme
       // (see specs/time-materials.md, "Fixed-price mode").
       fixedPriceRiskCoveragePct: 30,
+      // Per-estimate commercial concession, never a Settings default.
+      discountPct: 0,
     },
     valueBased: {
       valueDrivers: [
@@ -79,11 +81,11 @@ export function createEstimate(settings: Settings): Estimate {
 
 /**
  * Backfills fields that didn't exist yet when an estimate was first saved:
- * role-based pricing, payment-split presets, fixed-price mode, and the
- * fixed-price risk-coverage slider all shipped after this app's initial
- * release, so estimates created before each shipped are missing
+ * role-based pricing, payment-split presets, fixed-price mode, the
+ * fixed-price risk-coverage slider and the discount all shipped after this
+ * app's initial release, so estimates created before each shipped are missing
  * timeMaterials.roles/paymentSplit/useRoleBasedPricing/isFixedPrice/
- * fixedPriceRiskCoveragePct and valueBased.paymentSplit. Every read of an
+ * fixedPriceRiskCoveragePct/discountPct and valueBased.paymentSplit. Every read of an
  * estimate coming from outside this session (loaded from the server, or decoded
  * from a share code) should go through this first so the rest of the app
  * can keep assuming a complete shape.
@@ -100,6 +102,7 @@ export function normalizeEstimate(estimate: Estimate): Estimate {
       paymentSplit: estimate.timeMaterials?.paymentSplit ?? TM_DEFAULT_PAYMENT_SPLIT.map((entry) => ({ ...entry })),
       isFixedPrice: estimate.timeMaterials?.isFixedPrice ?? false,
       fixedPriceRiskCoveragePct: estimate.timeMaterials?.fixedPriceRiskCoveragePct ?? 30,
+      discountPct: estimate.timeMaterials?.discountPct ?? 0,
     },
     valueBased: {
       ...estimate.valueBased,
@@ -143,6 +146,7 @@ function freshenEstimate(source: Estimate): Estimate {
       paymentSplit: source.timeMaterials.paymentSplit.map((entry) => ({ ...entry })),
       isFixedPrice: source.timeMaterials.isFixedPrice,
       fixedPriceRiskCoveragePct: source.timeMaterials.fixedPriceRiskCoveragePct,
+      discountPct: source.timeMaterials.discountPct,
     },
     valueBased: {
       ...source.valueBased,

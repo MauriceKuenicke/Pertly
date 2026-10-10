@@ -73,6 +73,10 @@ export interface TimeMaterialsData {
   // optimistic-pessimistic spread gets priced into the fixed quote, from the
   // expected case (0) to the full pessimistic case (100). See calcTimeMaterials.
   fixedPriceRiskCoveragePct: number;
+  // 0-100, slider on the Pricing step. A client-visible discount worth this
+  // percentage of the Delivery Subtotal, subtracted after contingency, in
+  // both variable and fixed-price mode. See calcTimeMaterials.
+  discountPct: number;
 }
 
 export interface ValueBasedData {

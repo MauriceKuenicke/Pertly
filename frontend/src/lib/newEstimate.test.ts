@@ -72,6 +72,12 @@ describe("cloneEstimate", () => {
     expect(clone.rateEffort).toEqual(source.rateEffort);
   });
 
+  it("keeps the discount", () => {
+    const source = createEstimate(defaultSettings());
+    source.timeMaterials.discountPct = 15;
+    expect(cloneEstimate(source).timeMaterials.discountPct).toBe(15);
+  });
+
   it("gives every nested item (work packages, value drivers, tiers) a fresh id", () => {
     const source = createEstimate(defaultSettings());
     const clone = cloneEstimate(source);
@@ -249,6 +255,7 @@ describe("normalizeEstimate", () => {
     const normalized = normalizeEstimate(legacy);
 
     expect(normalized.timeMaterials.useRoleBasedPricing).toBe(false);
+    expect(normalized.timeMaterials.discountPct).toBe(0);
     expect(normalized.timeMaterials.roles.map((r) => r.name)).toEqual(["Trainee", "Junior", "Mid-level", "Senior", "Principal"]);
     expect(normalized.timeMaterials.paymentSplit).toEqual([{ label: "Billed Monthly in Arrears (Actuals)", pct: 100 }]);
     expect(normalized.timeMaterials.isFixedPrice).toBe(false);

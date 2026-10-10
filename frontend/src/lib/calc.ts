@@ -95,6 +95,13 @@ export interface TimeMaterialsTotals {
   riskAdjustedContingencyAmount: number;
   fixedPriceQuote: number;
   riskCoverageAmount: number;
+  // Discount, resolved for the estimate's billing mode (variable or fixed):
+  discountPct: number; // clamped 0-100
+  discountBase: number; // the Delivery Subtotal the percentage is taken of
+  discountAmount: number;
+  listPrice: number; // the quote before discount (recommendedBudget or fixedPriceQuote)
+  quotedPrice: number; // listPrice - discountAmount: what the client is quoted
+  discountedNotToExceedCap: number; // variable mode's client-facing cap, lowered by the same amount
 }
 
 export function calcTimeMaterials(
@@ -163,6 +170,18 @@ export function calcTimeMaterials(
   // silently into "base delivery cost."
   const riskCoverageAmount = riskAdjustedCost - baseCost;
 
+  // A commercial concession taken off the finished price: X% of the Delivery
+  // Subtotal for the active mode, subtracted after contingency so the risk
+  // buffer itself is never discounted. Because contingency is >= 0 and the
+  // discount is at most the subtotal, the quote can't go negative, and the
+  // cap drops by the same amount so it still never reads below the quote.
+  const discountPct = Math.max(0, Math.min(100, timeMaterials.discountPct ?? 0));
+  const discountBase = timeMaterials.isFixedPrice ? riskAdjustedSubtotal : deliverySubtotal;
+  const discountAmount = discountBase * (discountPct / 100);
+  const listPrice = timeMaterials.isFixedPrice ? fixedPriceQuote : recommendedBudget;
+  const quotedPrice = listPrice - discountAmount;
+  const discountedNotToExceedCap = notToExceedCap - discountAmount;
+
   return {
     rows,
     totalOptimisticDays,
@@ -187,6 +206,12 @@ export function calcTimeMaterials(
     riskAdjustedContingencyAmount,
     fixedPriceQuote,
     riskCoverageAmount,
+    discountPct,
+    discountBase,
+    discountAmount,
+    listPrice,
+    quotedPrice,
+    discountedNotToExceedCap,
   };
 }
 

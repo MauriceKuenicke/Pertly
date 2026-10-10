@@ -10,7 +10,7 @@ import {
   type PaymentMilestone,
   type RoleBreakdownRow,
 } from "./calc";
-import { formatDays, formatMoney } from "./currency";
+import { formatDays, formatDeduction, formatMoney } from "./currency";
 import { formatDate, formatWeeksRange, todayPlusDays } from "./date";
 
 // This HTML is sent to the backend (POST /api/proposals/pdf) and printed to
@@ -47,6 +47,8 @@ const STYLE = `
   th { text-align: left; font-size: 10.5px; font-weight: 600; color: #5f6f67; padding: 8px 4px; border-bottom: 1px solid #d7e0da; }
   td { padding: 10px 4px; border-bottom: 1px solid #d7e0da; color: #4b5d54; }
   .r { text-align: right; }
+  .subtotal td { border-top: 1px solid #c3d1c8; font-weight: 600; color: #15241d; }
+  .discount td { font-weight: 600; color: #2f5d4b; }
   .total td { border-top: 1.5px solid #c3d1c8; border-bottom: none; font-weight: 700; color: #15241d; }
   .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px; background: #e8eee9; border-radius: 10px; margin: 16px 0; }
   .meta div span { display: block; }
@@ -127,8 +129,14 @@ function clientOverviewTmHtml(estimate: Estimate): string {
   const preparerName = estimate.projectDetails.preparerName;
   const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
   const isFixedPrice = estimate.timeMaterials.isFixedPrice;
-  const quotedPrice = isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget;
-  const allocations = allocateBudgetByPackage(totals, quotedPrice);
+  const quotedPrice = totals.quotedPrice;
+  // Work packages are shown at their undiscounted share; the discount is its own line below them.
+  const allocations = allocateBudgetByPackage(totals, totals.listPrice);
+  const discountRowsHtml =
+    totals.discountAmount > 0
+      ? `<tr class="subtotal"><td>Subtotal</td><td class="r">${formatMoney(totals.listPrice, currency)}</td></tr>
+      <tr class="discount"><td>Discount (${totals.discountPct}%)</td><td class="r">${formatDeduction(totals.discountAmount, currency)}</td></tr>`
+      : "";
   const validUntil = formatDate(todayPlusDays(14));
   const expensesTotal = sumExpenses(estimate.expenses);
   const grandTotal = quotedPrice + expensesTotal;
@@ -151,9 +159,10 @@ function clientOverviewTmHtml(estimate: Estimate): string {
     <p>The work below is split into ${allocations.length} deliverables, each priced from a best-case / likely / worst-case range with a risk buffer already folded in. ${isFixedPrice ? "This is a fixed price for the full scope described below — agreed upfront, and it won't change regardless of how the work actually plays out." : "You're billed for actual time worked, and the total is capped. You'll never pay above the not-to-exceed figure."}</p>
     <table><thead><tr><th>WORK PACKAGE</th><th class="r">INVESTMENT</th></tr></thead><tbody>
       ${allocations.map((r) => `<tr><td>${esc(r.name || "Untitled package")}</td><td class="r">${formatMoney(r.amount, currency)}</td></tr>`).join("")}
+      ${discountRowsHtml}
       <tr class="total"><td>${isFixedPrice ? "Fixed Price" : "Estimated Investment"}</td><td class="r">${formatMoney(quotedPrice, currency)}</td></tr>
     </tbody></table>
-    <div class="banner brand">${isFixedPrice ? "📌 Fixed price — the total above won't change once agreed, regardless of hours worked." : `🔒 Not-to-exceed cap: ${formatMoney(totals.notToExceedCap + expensesTotal, currency)}. You will never be billed above this.`}</div>
+    <div class="banner brand">${isFixedPrice ? "📌 Fixed price — the total above won't change once agreed, regardless of hours worked." : `🔒 Not-to-exceed cap: ${formatMoney(totals.discountedNotToExceedCap + expensesTotal, currency)}. You will never be billed above this.`}</div>
     ${expensesSectionHtml(estimate.expenses, currency)}
     ${expensesTotal > 0 ? `<div class="row total"><span>Total Quoted Price</span><span>${formatMoney(grandTotal, currency)}</span></div>` : ""}
     ${paymentScheduleHtml(milestones, currency)}
@@ -171,9 +180,15 @@ function internalDetailTmHtml(estimate: Estimate): string {
   const expensesTotal = sumExpenses(estimate.expenses);
   const isFixedPrice = estimate.timeMaterials.isFixedPrice;
   const riskCoveragePct = estimate.timeMaterials.fixedPriceRiskCoveragePct;
-  const quotedPrice = isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget;
+  const quotedPrice = totals.quotedPrice;
   const grandTotal = quotedPrice + expensesTotal;
   const milestones = calcPaymentMilestones(grandTotal, estimate.timeMaterials.paymentSplit);
+  const discountRowsHtml =
+    totals.discountAmount > 0
+      ? `
+    <div class="row"><span>${isFixedPrice ? "Fixed Price" : "Recommended Budget"} Before Discount</span><span>${formatMoney(totals.listPrice, currency)}</span></div>
+    <div class="row"><span>− Discount (${totals.discountPct}% of ${formatMoney(totals.discountBase, currency)} Delivery Subtotal, shown to client)</span><span>${formatDeduction(totals.discountAmount, currency)}</span></div>`
+      : "";
   const roleNameFor = (roleId: string | undefined) => {
     const role = estimate.timeMaterials.roles.find((r) => r.id === roleId);
     return role ? role.name || "Untitled role" : "Unassigned";
@@ -185,16 +200,16 @@ function internalDetailTmHtml(estimate: Estimate): string {
     <div class="row"><span>+ Risk Coverage (${riskCoveragePct}% of ${formatMoney(totals.baseCost, currency)}–${formatMoney(totals.pessimisticCost, currency)})</span><span>${formatMoney(totals.riskCoverageAmount, currency)}</span></div>
     <div class="row"><span>Risk-Adjusted Cost</span><span>${formatMoney(totals.riskAdjustedCost, currency)}</span></div>
     <div class="row"><span>+ Overhead (${estimate.overheadRisk.overheadPct}%)</span><span>${formatMoney(totals.riskAdjustedOverheadAmount, currency)}</span></div>
-    <div class="row"><span>+ Contingency (${estimate.overheadRisk.contingencyPct}%)</span><span>${formatMoney(totals.riskAdjustedContingencyAmount, currency)}</span></div>
+    <div class="row"><span>+ Contingency (${estimate.overheadRisk.contingencyPct}%)</span><span>${formatMoney(totals.riskAdjustedContingencyAmount, currency)}</span></div>${discountRowsHtml}
     <div class="row total"><span>Fixed Price (Quote This)</span><span>${formatMoney(quotedPrice, currency)}</span></div>
     <div class="row"><span>Expected Cost (Internal Reference, Not Shown to Client)</span><span>${formatMoney(totals.recommendedBudget, currency)}</span></div>
     <div class="row"><span>Not-to-Exceed Ceiling (Internal Reference, 100% Risk Coverage)</span><span>${formatMoney(totals.notToExceedCap, currency)}</span></div>`
     : `
     <div class="row"><span>Base Delivery Cost (${useRoleBasedPricing ? `${formatDays(totals.expectedDays)} d across roles` : `${formatDays(totals.expectedDays)} d × ${formatMoney(estimate.rateEffort.dayRate, currency)}`})</span><span>${formatMoney(totals.baseCost, currency)}</span></div>
     <div class="row"><span>+ Overhead (${estimate.overheadRisk.overheadPct}%)</span><span>${formatMoney(totals.overheadAmount, currency)}</span></div>
-    <div class="row"><span>+ Contingency (${estimate.overheadRisk.contingencyPct}%)</span><span>${formatMoney(totals.contingencyAmount, currency)}</span></div>
-    <div class="row total"><span>Recommended Budget</span><span>${formatMoney(totals.recommendedBudget, currency)}</span></div>
-    <div class="row"><span>Not-to-Exceed Cap</span><span>${formatMoney(totals.notToExceedCap, currency)}</span></div>`;
+    <div class="row"><span>+ Contingency (${estimate.overheadRisk.contingencyPct}%)</span><span>${formatMoney(totals.contingencyAmount, currency)}</span></div>${discountRowsHtml}
+    <div class="row total"><span>Recommended Budget</span><span>${formatMoney(quotedPrice, currency)}</span></div>
+    <div class="row"><span>Not-to-Exceed Cap${totals.discountAmount > 0 ? " (Less Discount)" : ""}</span><span>${formatMoney(totals.discountedNotToExceedCap, currency)}</span></div>`;
 
   return wrap(
     "Internal Cost Breakdown",

@@ -11,7 +11,7 @@ import styles from "./AllEstimatesScreen.module.css";
 
 function estimateHeadline(estimate: Estimate): number {
   if (estimate.pricingMethod === "time-materials") {
-    return calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk).recommendedBudget;
+    return calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk).quotedPrice;
   }
   return calcValueBased(estimate.valueBased).recommendedFee;
 }

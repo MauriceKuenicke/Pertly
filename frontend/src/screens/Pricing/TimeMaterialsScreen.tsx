@@ -1,7 +1,7 @@
 import { WizardLayout, FooterBar } from "../../components/layout";
-import { Button, Card } from "../../components/ui";
+import { Button, Card, Slider } from "../../components/ui";
 import { calcRoleBreakdown, calcTimeMaterials, normalizeWorkPackageDays } from "../../lib/calc";
-import { formatDays, formatMoney } from "../../lib/currency";
+import { formatDays, formatDeduction, formatMoney } from "../../lib/currency";
 import { createId } from "../../lib/id";
 import type { WizardScreenProps } from "../wizardProps";
 import { breadcrumbLabelFor, windowTitleFor } from "../wizardProps";
@@ -24,6 +24,7 @@ export function TimeMaterialsScreen({
   const roleBreakdown = calcRoleBreakdown(timeMaterials, estimate.rateEffort);
   const currency = estimate.projectDetails.currency;
   const canContinue = totals.baseCost > 0;
+  const quoteLabel = timeMaterials.isFixedPrice ? "Fixed Price" : "Recommended Budget";
 
   const updateRow = (
     id: string,
@@ -253,12 +254,22 @@ export function TimeMaterialsScreen({
                 )}
               </span>
             </div>
+            {totals.discountAmount > 0 && (
+              <>
+                <div className={styles.summaryRowSub}>
+                  <span>{quoteLabel} Before Discount</span>
+                  <span>{formatMoney(totals.listPrice, currency)}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>− Discount ({totals.discountPct}% of Delivery Subtotal)</span>
+                  <span>{formatDeduction(totals.discountAmount, currency)}</span>
+                </div>
+              </>
+            )}
             <div className={styles.divider} />
             <div className={styles.summaryRowBig}>
-              <span>{timeMaterials.isFixedPrice ? "Fixed Price" : "Recommended Budget"}</span>
-              <span className={styles.summaryRowBigValue}>
-                {formatMoney(timeMaterials.isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget, currency)}
-              </span>
+              <span>{quoteLabel}</span>
+              <span className={styles.summaryRowBigValue}>{formatMoney(totals.quotedPrice, currency)}</span>
             </div>
             {timeMaterials.isFixedPrice && (
               <div className={styles.summaryRow}>
@@ -272,6 +283,24 @@ export function TimeMaterialsScreen({
                 ? `Risk coverage picks a point between the expected cost and the full pessimistic-case cost, before overhead and contingency are applied to that adjusted base — it's not a percentage of the expected cost itself.`
                 : "Uncertainty is combined with root-sum-of-squares across packages, not simple addition, so total risk isn't overstated. Overhead covers non-billable effort; contingency buffers estimation uncertainty. Both are set on the Assumptions step."}
             </p>
+          </Card>
+
+          <Card
+            title="Discount"
+            description={`Optional, shown to the client. Worth a share of the Delivery Subtotal (${formatMoney(totals.discountBase, currency)}) and taken off after contingency, so your risk buffer stays intact.`}
+          >
+            <Slider
+              label="Discount"
+              value={timeMaterials.discountPct}
+              min={0}
+              max={100}
+              step={1}
+              formatValue={(v) =>
+                v === 0 ? "0%" : `${v}% · ${formatDeduction((totals.discountBase * v) / 100, currency)}`
+              }
+              formatBound={(v) => `${v}%`}
+              onChange={(v) => onChange((e) => ({ ...e, timeMaterials: { ...e.timeMaterials, discountPct: v } }))}
+            />
           </Card>
 
           {roleBreakdown.length > 0 && (

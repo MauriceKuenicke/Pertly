@@ -21,6 +21,11 @@ export function formatMoney(amount: number, currency: string, opts: { decimals?:
   return `${currencySymbol(currency)}${formatted}`;
 }
 
+/** A deduction, e.g. a discount line: "−€1,150" (typographic minus). */
+export function formatDeduction(amount: number, currency: string): string {
+  return `−${formatMoney(Math.abs(amount), currency)}`;
+}
+
 export function formatDays(days: number, decimals = 2): string {
   return days.toFixed(decimals);
 }

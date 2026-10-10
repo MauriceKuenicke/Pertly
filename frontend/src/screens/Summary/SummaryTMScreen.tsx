@@ -10,7 +10,7 @@ import {
   TM_PAYMENT_SPLIT_PRESETS,
   type PaymentSplitPreset,
 } from "../../lib/calc";
-import { formatDays, formatMoney } from "../../lib/currency";
+import { formatDays, formatDeduction, formatMoney } from "../../lib/currency";
 import type { WizardScreenProps } from "../wizardProps";
 import { breadcrumbLabelFor, windowTitleFor } from "../wizardProps";
 import styles from "./SummaryScreen.module.css";
@@ -75,8 +75,10 @@ export function SummaryTMScreen({
   // instead of the plain expected-case recommended budget — the user
   // absorbs any overrun beyond it, so how much of the worst case to price
   // in is a deliberate per-estimate choice (the risk coverage slider on
-  // the Assumptions step).
-  const quotedPrice = isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget;
+  // the Assumptions step). Either way, an optional discount (Pricing step)
+  // comes off last; quotedPrice is the figure after it.
+  const quotedPrice = totals.quotedPrice;
+  const quoteLabel = isFixedPrice ? "Fixed Price" : "Recommended Budget";
   const grandTotal = quotedPrice + expensesTotal;
   const paymentSplit = estimate.timeMaterials.paymentSplit;
   const milestones = calcPaymentMilestones(grandTotal, paymentSplit);
@@ -137,7 +139,11 @@ export function SummaryTMScreen({
           <div className={styles.kpi}>
             <span className={styles.kpiLabel}>{isFixedPrice ? "FIXED PRICE" : "RECOMMENDED BUDGET"}</span>
             <span className={styles.kpiValue}>{formatMoney(quotedPrice, currency)}</span>
-            <span className={styles.kpiFoot}>Quote this as your target price</span>
+            <span className={styles.kpiFoot}>
+              {totals.discountAmount > 0
+                ? `Quote this as your target price. Includes a ${totals.discountPct}% discount (${formatDeduction(totals.discountAmount, currency)})`
+                : "Quote this as your target price"}
+            </span>
           </div>
           <div className={styles.kpi}>
             <span className={styles.kpiLabel}>EXPECTED EFFORT</span>
@@ -155,8 +161,12 @@ export function SummaryTMScreen({
           ) : (
             <div className={styles.kpi}>
               <span className={styles.kpiLabel}>NOT-TO-EXCEED CAP</span>
-              <span className={styles.kpiValue}>{formatMoney(totals.notToExceedCap, currency)}</span>
-              <span className={styles.kpiFoot}>Agree this ceiling with the client (pessimistic case)</span>
+              <span className={styles.kpiValue}>{formatMoney(totals.discountedNotToExceedCap, currency)}</span>
+              <span className={styles.kpiFoot}>
+                {totals.discountAmount > 0
+                  ? "Agree this ceiling with the client (pessimistic case, less the same discount)"
+                  : "Agree this ceiling with the client (pessimistic case)"}
+              </span>
             </div>
           )}
         </div>
@@ -205,9 +215,23 @@ export function SummaryTMScreen({
                 {formatMoney(isFixedPrice ? totals.riskAdjustedContingencyAmount : totals.contingencyAmount, currency)}
               </span>
             </div>
+            {totals.discountAmount > 0 && (
+              <>
+                <div className={styles.buildRowSub}>
+                  <span>{quoteLabel} Before Discount</span>
+                  <span>{formatMoney(totals.listPrice, currency)}</span>
+                </div>
+                <div className={styles.buildRow}>
+                  <span>
+                    − Discount ({totals.discountPct}% of {formatMoney(totals.discountBase, currency)} Delivery Subtotal)
+                  </span>
+                  <span>{formatDeduction(totals.discountAmount, currency)}</span>
+                </div>
+              </>
+            )}
             <div className={styles.divider} />
             <div className={styles.buildRowTotal}>
-              <span>{isFixedPrice ? "Fixed Price" : "Recommended Budget"}</span>
+              <span>{quoteLabel}</span>
               <span className={styles.buildRowTotalValue}>{formatMoney(quotedPrice, currency)}</span>
             </div>
             {expensesTotal > 0 && (

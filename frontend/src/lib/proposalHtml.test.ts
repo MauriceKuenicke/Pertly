@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildProposalHtml } from "./proposalHtml";
+import { calcTimeMaterials } from "./calc";
+import { formatDeduction, formatMoney } from "./currency";
 import { createEstimate } from "./newEstimate";
 import { defaultSettings } from "./settings";
 import type { Estimate } from "../types/estimate";
@@ -31,6 +33,7 @@ function maliciousEstimate(pricingMethod: Estimate["pricingMethod"]): Estimate {
     paymentSplit: [{ label: IMG_PAYLOAD, pct: 100 }],
     isFixedPrice: false,
     fixedPriceRiskCoveragePct: 30,
+    discountPct: 0,
   };
   estimate.valueBased = {
     ...estimate.valueBased,
@@ -134,5 +137,54 @@ describe("buildProposalHtml", () => {
     expect(internalHtml).toContain("NTE CAP BASIS");
     expect(internalHtml).toContain("Not-to-Exceed Cap</span>");
     expect(internalHtml).toContain("Effective Day Rate");
+  });
+
+  function discountedEstimate(isFixedPrice: boolean): Estimate {
+    const estimate = createEstimate(defaultSettings());
+    estimate.pricingMethod = "time-materials";
+    estimate.timeMaterials = {
+      ...estimate.timeMaterials,
+      workPackages: [{ id: "w1", name: "Discovery", optimisticDays: 2, likelyDays: 4, pessimisticDays: 8, roleId: undefined }],
+      isFixedPrice,
+      discountPct: 10,
+    };
+    return estimate;
+  }
+
+  it.each([false, true])("shows the discount to the client as its own line (fixed price: %s)", (isFixedPrice) => {
+    const estimate = discountedEstimate(isFixedPrice);
+    const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
+    const html = buildProposalHtml(estimate, "client").html;
+
+    expect(html).toContain(`<tr class="subtotal"><td>Subtotal</td><td class="r">${formatMoney(totals.listPrice, "EUR")}</td></tr>`);
+    expect(html).toContain(`<td>Discount (10%)</td><td class="r">${formatDeduction(totals.discountAmount, "EUR")}</td>`);
+    expect(html).toContain(`<td class="r">${formatMoney(totals.quotedPrice, "EUR")}</td></tr>`);
+  });
+
+  it.each([false, true])("shows the discount in the internal build-up (fixed price: %s)", (isFixedPrice) => {
+    const estimate = discountedEstimate(isFixedPrice);
+    const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
+    const html = buildProposalHtml(estimate, "internal").html;
+
+    expect(html).toContain("Before Discount");
+    expect(html).toContain(`− Discount (10% of ${formatMoney(totals.discountBase, "EUR")} Delivery Subtotal`);
+    expect(html).toContain(formatDeduction(totals.discountAmount, "EUR"));
+  });
+
+  it("lowers the client-facing not-to-exceed cap by the discount amount", () => {
+    const estimate = discountedEstimate(false);
+    const totals = calcTimeMaterials(estimate.timeMaterials, estimate.rateEffort, estimate.overheadRisk);
+    const html = buildProposalHtml(estimate, "client").html;
+    expect(html).toContain(`Not-to-exceed cap: ${formatMoney(totals.notToExceedCap - totals.discountAmount, "EUR")}`);
+  });
+
+  it("adds no discount markup at the 0% default", () => {
+    const estimate = discountedEstimate(false);
+    estimate.timeMaterials.discountPct = 0;
+    for (const view of ["client", "internal"] as const) {
+      const html = buildProposalHtml(estimate, view).html;
+      expect(html).not.toContain("Discount (");
+      expect(html).not.toContain('class="subtotal"');
+    }
   });
 });

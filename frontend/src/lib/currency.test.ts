@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CURRENCY_CODES, currencySymbol, formatDays, formatMoney } from "./currency";
+import { CURRENCY_CODES, currencySymbol, formatDays, formatDeduction, formatMoney } from "./currency";
 
 describe("currencySymbol", () => {
   it("returns known symbols", () => {
@@ -41,5 +41,12 @@ describe("formatDays", () => {
 
   it("supports a custom decimal count", () => {
     expect(formatDays(2.567, 1)).toBe("2.6");
+  });
+});
+
+describe("formatDeduction", () => {
+  it("prefixes a typographic minus and ignores the sign of the input", () => {
+    expect(formatDeduction(1150, "EUR")).toBe("−€1,150");
+    expect(formatDeduction(-1150, "EUR")).toBe("−€1,150");
   });
 });

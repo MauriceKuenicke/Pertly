@@ -52,13 +52,30 @@ A ceiling price, computed from every deliverable's *pessimistic* (worst-case) da
 
 In fixed-price mode (below), this figure becomes one end of the risk-coverage slider's range — the 100% setting — rather than always being *the* quoted price outright; see "Fixed-price mode" for how much of it actually gets priced in.
 
-### 5. Pass-through expenses
+### 5. Discount
 
-Hardware, licenses, travel, and similar costs are added **after** the recommended budget, at cost, with no overhead or contingency markup — those markups price labor, not reimbursed costs.
+On the Pricing step the user can grant the client an optional **discount**, set with a slider from 0% to 100% in 1% steps that shows the money value next to the percentage while dragging. **Default: 0%**, every new estimate starts without a discount. Like the fixed-price toggle there's no Settings-level default: a discount is a per-engagement commercial concession, not a standing policy.
 
-### 6. Payment schedule
+- **Basis:** the percentage is taken of the **Delivery Subtotal** (cost + overhead). In fixed-price mode that is the risk-adjusted Delivery Subtotal, the figure the build-up shows at that point.
+- **Placement in the chain:** the discount is subtracted **after contingency**. Contingency is still calculated on the full, undiscounted subtotal, so the risk buffer is never discounted away, and the amount the client saves is exactly the percentage shown on the slider.
 
-Once the total (recommended budget + pass-through expenses) is known, the user picks a suggested payment schedule. In variable/actuals mode (the default), the options reflect that the final number isn't agreed in advance — both are open-ended, ongoing arrangements rather than a deposit-then-lump-sum structure:
+```
+discount     = deliverySubtotal × discountPct
+quotedPrice  = (deliverySubtotal + contingency) − discount
+```
+
+- **Not-to-exceed cap:** in variable mode the cap drops by the **same money amount** as the quote, so the gap between quote and ceiling stays unchanged. Since both figures lose the same amount, the "cap is never below the quote" invariant keeps holding.
+- **Floor:** because the discount can be at most the Delivery Subtotal and contingency is never negative, the quoted price can't go below zero. At 100% only the contingency remains.
+- **Downstream:** the payment schedule, the total quoted price (plus pass-through expenses) and the estimate's headline price in the list all use the discounted figure. Pass-through expenses themselves are never discounted.
+- **Effective day rate** (§9) is unaffected. It's a cost-side reference (cost and overhead per day), and the discount is a price concession on top.
+
+### 6. Pass-through expenses
+
+Hardware, licenses, travel, and similar costs are added **after** the recommended budget (and after any discount), at cost, with no overhead or contingency markup — those markups price labor, not reimbursed costs.
+
+### 7. Payment schedule
+
+Once the total (recommended budget, less any discount, + pass-through expenses) is known, the user picks a suggested payment schedule. In variable/actuals mode (the default), the options reflect that the final number isn't agreed in advance — both are open-ended, ongoing arrangements rather than a deposit-then-lump-sum structure:
 
 | Schedule | Split | Default? |
 |---|---|---|
@@ -69,11 +86,11 @@ T&M defaults to monthly-in-arrears rather than a deposit/milestone structure, si
 
 A 50/50 split or a single payment on completion doesn't fit variable billing — those imply a total agreed in advance, which is what fixed-price mode is for (below).
 
-### 7. Minimum viable estimate
+### 8. Minimum viable estimate
 
 An estimate can't be carried past the pricing step until at least one deliverable has a non-zero cost. This exists to catch an obvious mistake — an empty work breakdown, or one where every deliverable is still at zero days, would otherwise silently produce a €0 budget with no warning.
 
-### 8. Effective day rate (internal only)
+### 9. Effective day rate (internal only)
 
 Alongside the recommended budget, T&M also surfaces the **effective day rate**: the blended day rate actually being realized on this estimate once overhead is folded in — base cost ÷ expected effort, marked up by the overhead percentage. In blended-rate mode this lands close to the day rate entered on the Assumptions step (just marked up by overhead); in role-based mode it's the true blended average across whatever mix of roles ended up doing the work, which the raw per-role rates alone don't show at a glance.
 
@@ -83,7 +100,9 @@ This mirrors Value-Based Pricing's break-even day rate: an internal profitabilit
 
 The client-facing proposal never reveals a day rate — not even in role-based mode, where it shows only how many roles were involved, never their rates. Rate confidentiality is a hard rule, not a per-estimate choice. The client view shows: each deliverable's allocated share of the recommended budget, the total, the not-to-exceed cap, pass-through expenses, the payment schedule, and the assumptions/exclusions list.
 
-The internal view additionally shows: the day rate (or full role roster and rates), the overhead/contingency percentages, the not-to-exceed cap's basis, a role-by-role cost breakdown, and the full optimistic/likely/pessimistic/expected/uncertainty table per deliverable.
+A **discount is shown to the client openly**, never folded silently into the line items. Deliverables appear at their undiscounted share, followed by a *Subtotal*, a *Discount (X%)* line with the amount deducted, and the discounted total. The concession is visible as a concession. The not-to-exceed cap the client sees is the discounted one.
+
+The internal view additionally shows: the day rate (or full role roster and rates), the overhead/contingency percentages, the not-to-exceed cap's basis, a role-by-role cost breakdown, and the full optimistic/likely/pessimistic/expected/uncertainty table per deliverable. When a discount is set, its cost build-up shows the price before discount, the discount line (percentage, the Delivery Subtotal it's taken of, and the amount), and the discounted quote.
 
 Every T&M proposal also carries a fixed **governance checklist** — not-to-exceed alerting, reporting cadence, backlog ownership, change-handling process, and attaching assumptions/exclusions — presented as recommended practice for how the engagement should be run day to day. The copy stays neutral: it never invokes a company or an internal policy reference, since the user setting these terms is the one reading them.
 
@@ -101,6 +120,7 @@ There's no Settings-level default for this toggle, unlike role-based pricing. Ev
 - **The "not-to-exceed cap" concept disappears from the client-facing view**, replaced by the fixed price itself — once the price is fixed, a second client-facing "ceiling" above it is redundant, there's nothing left to cap. Internally, both the expected-case figure and the full pessimistic-case ceiling (100% risk coverage) stay visible as reference points either side of the quote — "here's what I actually expect to spend" and "here's the absolute worst case if I'd priced in all of it" — so the freelancer can see how exposed the chosen risk coverage leaves them.
 - **The payment schedule switches to a different preset list** (below).
 - **The governance checklist swaps its cap-monitoring item for a change-order item** (below).
+- **The discount works identically**, taken off the risk-adjusted figures: X% of the risk-adjusted Delivery Subtotal, subtracted from the fixed price after contingency. The internal reference points (expected cost and the 100%-coverage ceiling) stay undiscounted. They describe cost and exposure, not what the client pays.
 - **Pass-through expenses are unaffected.** They stay itemized and billed at cost on top of the fixed price, exactly as in variable mode and in VBP. "Fixed price" describes the professional fee, not a promise to absorb hardware, licensing, or travel costs too.
 
 **Risk coverage slider** controls how much of the optimistic-pessimistic spread the fixed price prices in, from 0% (the plain expected-case cost) to 100% (the full pessimistic-case cost) — set on the Assumptions step, next to the Variable/Fixed toggle, and only shown in fixed-price mode. Mechanically, it interpolates linearly between the *pre-markup* expected cost and pessimistic cost, then applies the same overhead and contingency markup as every other build-up in this spec:
@@ -134,6 +154,7 @@ At 0% this is identical to the recommended-budget build-up; at 100% it's identic
 - **What determines the payment-schedule options is whether the total is agreed in advance, not which branch computed it.** That's why fixed-price T&M and VBP are meant to share one preset list (both produce a single agreed number), while variable T&M has its own, narrower list built around ongoing billing. The axis is "fixed commitment vs. variable actuals," which cuts across the T&M/VBP split rather than following it.
 - **Fixed-price mode has no Settings-level default and role-based pricing does.** Role-based pricing is a roster the user builds up once and reuses; fixed-vs-variable is closer to a per-engagement contract decision that's worth actively choosing each time, not inheriting silently from a global default. The risk-coverage slider follows the same logic: every new estimate starts at a fixed 30%, not a Settings-configurable value, since how much worst case to price in is itself part of that per-engagement decision.
 - **The risk-coverage slider interpolates cost, not days.** In role-based mode, work packages can bill at different rates, so there's no single "days" figure to blend between expected and pessimistic; interpolating the two already-computed cost totals sidesteps that and keeps the formula identical in blended and role-based mode.
+- **The discount comes off after contingency and is always shown to the client.** Taking it after contingency means a concession never quietly erodes the risk buffer, and the client saves exactly the percentage the user chose. Showing it as its own line, instead of shrinking each deliverable's price, keeps the undiscounted value of the work on record, which matters for future quotes and for the concession to read as one. The slider deliberately allows up to 100%: the user, not the app, decides how far to go, and the math guarantees the quote never goes negative and the cap never drops below it.
 - **The effective day rate is internal-only, shown only where other internal-only figures already live** (the Summary step, the Internal Detail document) — never the Pricing step or the client proposal, consistent with day rates never being disclosed to the client at all.
 
 ## Planned changes (decided, not yet built)
@@ -142,4 +163,4 @@ None currently outstanding.
 
 ## Open questions
 
-None currently outstanding — the two open questions from the previous revision (whether to surface an effective day rate, and whether the fixed-price toggle needs a Settings-level default) were resolved in this round; see "Core methodology" §8 and "Business rules & decisions" above.
+None currently outstanding — the two open questions from the previous revision (whether to surface an effective day rate, and whether the fixed-price toggle needs a Settings-level default) were resolved in this round; see "Core methodology" §9 and "Business rules & decisions" above.

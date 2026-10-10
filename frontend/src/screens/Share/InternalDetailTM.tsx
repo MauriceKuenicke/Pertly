@@ -1,6 +1,6 @@
 import type { Estimate } from "../../types/estimate";
 import { calcPaymentMilestones, calcRoleBreakdown, calcTimeMaterials, sumExpenses } from "../../lib/calc";
-import { formatDays, formatMoney } from "../../lib/currency";
+import { formatDays, formatDeduction, formatMoney } from "../../lib/currency";
 import { formatDate } from "../../lib/date";
 import { ExpensesSection, PaymentScheduleSection } from "./ProposalExtras";
 import styles from "./ProposalDoc.module.css";
@@ -17,7 +17,22 @@ export function InternalDetailTM({ estimate }: Props) {
   const expensesTotal = sumExpenses(estimate.expenses);
   const isFixedPrice = estimate.timeMaterials.isFixedPrice;
   const riskCoveragePct = estimate.timeMaterials.fixedPriceRiskCoveragePct;
-  const quotedPrice = isFixedPrice ? totals.fixedPriceQuote : totals.recommendedBudget;
+  const quotedPrice = totals.quotedPrice;
+  const discountRows = totals.discountAmount > 0 && (
+    <>
+      <div className={styles.buildRowSub}>
+        <span>{isFixedPrice ? "Fixed Price" : "Recommended Budget"} Before Discount</span>
+        <span>{formatMoney(totals.listPrice, currency)}</span>
+      </div>
+      <div className={styles.buildRow}>
+        <span>
+          − Discount ({totals.discountPct}% of {formatMoney(totals.discountBase, currency)} Delivery Subtotal, shown to
+          client)
+        </span>
+        <span>{formatDeduction(totals.discountAmount, currency)}</span>
+      </div>
+    </>
+  );
   const grandTotal = quotedPrice + expensesTotal;
   const milestones = calcPaymentMilestones(grandTotal, estimate.timeMaterials.paymentSplit);
 
@@ -91,6 +106,7 @@ export function InternalDetailTM({ estimate }: Props) {
             <span>+ Contingency ({estimate.overheadRisk.contingencyPct}%)</span>
             <span>{formatMoney(totals.riskAdjustedContingencyAmount, currency)}</span>
           </div>
+          {discountRows}
           <div className={styles.buildRowTotal}>
             <span>Fixed Price (Quote This)</span>
             <span>{formatMoney(quotedPrice, currency)}</span>
@@ -128,13 +144,14 @@ export function InternalDetailTM({ estimate }: Props) {
             <span>+ Contingency ({estimate.overheadRisk.contingencyPct}%)</span>
             <span>{formatMoney(totals.contingencyAmount, currency)}</span>
           </div>
+          {discountRows}
           <div className={styles.buildRowTotal}>
             <span>Recommended Budget (Quote This)</span>
-            <span>{formatMoney(totals.recommendedBudget, currency)}</span>
+            <span>{formatMoney(quotedPrice, currency)}</span>
           </div>
           <div className={styles.buildRow}>
-            <span>Not-to-Exceed Cap (Pessimistic Case)</span>
-            <span>{formatMoney(totals.notToExceedCap, currency)}</span>
+            <span>Not-to-Exceed Cap (Pessimistic Case{totals.discountAmount > 0 ? ", Less Discount" : ""})</span>
+            <span>{formatMoney(totals.discountedNotToExceedCap, currency)}</span>
           </div>
         </>
       )}
