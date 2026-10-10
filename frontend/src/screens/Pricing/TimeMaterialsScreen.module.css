@@ -43,10 +43,10 @@
 .row,
 .totalRow {
   display: grid;
-  grid-template-columns: 20px minmax(140px, 2fr) 56px 60px 56px 62px 50px 74px 20px;
+  grid-template-columns: 34px minmax(140px, 2fr) 56px 60px 56px 62px 50px 74px 20px;
   align-items: center;
   gap: 6px;
-  min-width: 590px;
+  min-width: 604px;
 }
 
 /* Role column adds a select between the name and the OPT/LIKELY/PESS days.
@@ -55,8 +55,8 @@
 .headerRow.roleColsOn,
 .row.roleColsOn,
 .totalRow.roleColsOn {
-  grid-template-columns: 20px minmax(90px, 1.3fr) 118px 48px 52px 48px 56px 44px 68px 20px;
-  min-width: 624px;
+  grid-template-columns: 34px minmax(90px, 1.3fr) 118px 48px 52px 48px 56px 44px 68px 20px;
+  min-width: 638px;
 }
 
 .headerRow {
@@ -75,6 +75,54 @@
 
 .row {
   padding: 8px 0;
+}
+
+/* Reordering: the dragged row fades, the drop slot shows as a brand-colored line. */
+.rowDragging {
+  opacity: 0.4;
+}
+
+.dropBefore {
+  box-shadow: inset 0 2px 0 var(--brand-primary);
+}
+
+.dropAfter {
+  box-shadow: inset 0 -2px 0 var(--brand-primary);
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  cursor: grab;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.grip {
+  font-size: 12px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.dragHandle:hover .grip,
+.dragHandle:focus-visible .grip {
+  color: var(--brand-primary);
 }
 
 .totalRow {

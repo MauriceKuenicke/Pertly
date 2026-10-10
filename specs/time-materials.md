@@ -25,6 +25,8 @@ From these:
 - **Expected effort** = (Optimistic + 4 × Most likely + Pessimistic) ÷ 6 — the standard three-point (PERT) weighting, which counts the "most likely" case six times as heavily as either extreme. This turns a fuzzy range into one defensible number per deliverable instead of a single guess.
 - **Uncertainty (σ)** = (Pessimistic − Optimistic) ÷ 6 — how much risk this specific deliverable carries.
 
+**Order**: deliverables keep the order the user gives them. New ones are added at the end, and any deliverable can be moved to any position, by dragging it or with the keyboard. Both proposals list the deliverables in exactly this order, so the user controls how the scope reads to the client (e.g. chronologically or by phase).
+
 **Business rule**: Optimistic ≤ Most likely ≤ Pessimistic is always enforced. If a user types values out of that order, the app quietly pushes the later bound up to meet the earlier one rather than rejecting the input or showing an error — entry stays frictionless, and the uncertainty math can never go negative (which would misleadingly read as "negative risk").
 
 ### 2. Day rate — blended or role-based

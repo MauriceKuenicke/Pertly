@@ -1,8 +1,10 @@
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { WizardLayout, FooterBar } from "../../components/layout";
 import { Button, Card, Slider } from "../../components/ui";
 import { calcRoleBreakdown, calcTimeMaterials, normalizeWorkPackageDays } from "../../lib/calc";
 import { formatDays, formatDeduction, formatMoney } from "../../lib/currency";
 import { createId } from "../../lib/id";
+import { dropIndex, moveItem, type DropPosition } from "../../lib/reorder";
 import type { WizardScreenProps } from "../wizardProps";
 import { breadcrumbLabelFor, windowTitleFor } from "../wizardProps";
 import styles from "./TimeMaterialsScreen.module.css";
@@ -25,6 +27,49 @@ export function TimeMaterialsScreen({
   const currency = estimate.projectDetails.currency;
   const canContinue = totals.baseCost > 0;
   const quoteLabel = timeMaterials.isFixedPrice ? "Fixed Price" : "Recommended Budget";
+
+  // Reordering work packages: drag a row by its handle, or focus the handle and use ↑/↓.
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ id: string; position: DropPosition } | null>(null);
+  const handleRefs = useRef(new Map<string, HTMLButtonElement>());
+  const [refocusId, setRefocusId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!refocusId) return;
+    handleRefs.current.get(refocusId)?.focus();
+    setRefocusId(null);
+  }, [refocusId, timeMaterials.workPackages]);
+
+  const moveWorkPackage = (id: string, targetIndex: (fromIndex: number) => number) => {
+    onChange((e) => {
+      const packages = e.timeMaterials.workPackages;
+      const fromIndex = packages.findIndex((p) => p.id === id);
+      if (fromIndex === -1) return e;
+      const toIndex = targetIndex(fromIndex);
+      if (toIndex === fromIndex) return e;
+      return { ...e, timeMaterials: { ...e.timeMaterials, workPackages: moveItem(packages, fromIndex, toIndex) } };
+    });
+  };
+
+  const endDrag = () => {
+    setDraggedId(null);
+    setDropTarget(null);
+  };
+
+  const dropOnto = (overId: string, position: DropPosition) => {
+    if (!draggedId) return;
+    const overIndex = timeMaterials.workPackages.findIndex((p) => p.id === overId);
+    if (overIndex !== -1) moveWorkPackage(draggedId, (fromIndex) => dropIndex(fromIndex, overIndex, position));
+    endDrag();
+  };
+
+  const onHandleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, id: string) => {
+    const step = event.key === "ArrowUp" ? -1 : event.key === "ArrowDown" ? 1 : 0;
+    if (!step) return;
+    event.preventDefault();
+    moveWorkPackage(id, (fromIndex) => fromIndex + step);
+    setRefocusId(id);
+  };
 
   const updateRow = (
     id: string,
@@ -99,8 +144,53 @@ export function TimeMaterialsScreen({
                 <span className={styles.colDel} />
               </div>
               {totals.rows.map((row, i) => (
-                <div className={`${styles.row} ${useRoleBasedPricing ? styles.roleColsOn : ""}`} key={row.id}>
-                  <span className={styles.colNum}>{i + 1}</span>
+                <div
+                  className={[
+                    styles.row,
+                    useRoleBasedPricing ? styles.roleColsOn : "",
+                    draggedId === row.id ? styles.rowDragging : "",
+                    dropTarget?.id === row.id ? (dropTarget.position === "before" ? styles.dropBefore : styles.dropAfter) : "",
+                  ].join(" ")}
+                  key={row.id}
+                  onDragOver={(e) => {
+                    if (!draggedId) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const position: DropPosition = e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+                    if (dropTarget?.id !== row.id || dropTarget.position !== position) setDropTarget({ id: row.id, position });
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dropTarget) dropOnto(dropTarget.id, dropTarget.position);
+                  }}
+                >
+                  <button
+                    type="button"
+                    className={styles.dragHandle}
+                    draggable
+                    ref={(el) => {
+                      if (el) handleRefs.current.set(row.id, el);
+                      else handleRefs.current.delete(row.id);
+                    }}
+                    aria-label={`Move work package ${i + 1}: drag, or use the arrow keys`}
+                    title="Drag to reorder (or focus and press ↑/↓)"
+                    onKeyDown={(e) => onHandleKeyDown(e, row.id)}
+                    onDragStart={(e) => {
+                      setDraggedId(row.id);
+                      e.dataTransfer.effectAllowed = "move";
+                      // Firefox only starts a drag when some data is set.
+                      e.dataTransfer.setData("text/plain", row.id);
+                      const rowElement = e.currentTarget.parentElement;
+                      if (rowElement) e.dataTransfer.setDragImage(rowElement, 16, rowElement.offsetHeight / 2);
+                    }}
+                    onDragEnd={endDrag}
+                  >
+                    <span className={styles.grip} aria-hidden="true">
+                      ⠿
+                    </span>
+                    {i + 1}
+                  </button>
                   <input
                     className={styles.nameInput}
                     value={row.name}
