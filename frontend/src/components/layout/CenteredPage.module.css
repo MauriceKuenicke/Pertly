@@ -1,0 +1,51 @@
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 48px 24px;
+  overflow-y: auto;
+  background: var(--bg-app);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+  width: 100%;
+  max-width: 420px;
+  margin: auto 0;
+}
+
+.columnRegular {
+  max-width: 520px;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.logoMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.logoText {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}

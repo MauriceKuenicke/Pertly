@@ -1,0 +1,48 @@
+[project]
+name = "pertly"
+version = "2.0.0"
+description = "Pertly backend: accounts, persistence and PDF rendering for the Pertly estimation app."
+readme = "README.md"
+authors = [{ name = "Maurice Künicke" }]
+license = "MIT"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "alembic>=1.14",
+    "argon2-cffi>=23.1",
+    "fastapi>=0.115",
+    "playwright>=1.49",
+    "pydantic-settings>=2.6",
+    "python-multipart>=0.0.18",
+    "uvicorn[standard]>=0.32",
+]
+
+[project.scripts]
+pertly = "pertly.cli:main"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.12"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+src = ["src", "tests", "migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection idiom puts Depends()/Form() in defaults.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Form", "fastapi.Query", "fastapi.Path", "fastapi.Body"]

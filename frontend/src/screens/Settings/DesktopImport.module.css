@@ -1,0 +1,41 @@
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.checkboxRow input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--brand-primary);
+}
+
+.fileInput {
+  display: none;
+}
+
+.actions {
+  display: flex;
+}
+
+.result {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.resultSuccess {
+  background: var(--semantic-success-subtle);
+  color: var(--semantic-success);
+}
+
+.resultError {
+  background: var(--semantic-danger-subtle);
+  color: var(--semantic-danger);
+}

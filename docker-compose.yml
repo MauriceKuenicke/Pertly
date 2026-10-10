@@ -1,0 +1,61 @@
+# Pertly: self-hosted stack.
+#
+#   docker compose up -d --build      (or: make up)
+#
+# Works without a .env file; copy .env.example to .env to override defaults.
+# Only the frontend (nginx) is published; it proxies /api to the backend.
+
+name: pertly
+
+services:
+  backend:
+    build: ./backend
+    image: pertly-backend:latest
+    restart: unless-stopped
+    init: true
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_PATH: /data/pertly.db
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+      # Optional bootstrap admin. ADMIN_EMAIL / ADMIN_PASSWORD have no value
+      # here on purpose: they pass through from the shell or .env when set
+      # and stay *unset* otherwise (an empty default would arrive as "").
+      ADMIN_EMAIL:
+      ADMIN_PASSWORD:
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-Admin}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-User}
+    volumes:
+      - pertly-data:/data
+    expose:
+      - "8000"
+    # Headless Chromium uses /dev/shm; Docker's 64 MB default is tight.
+    shm_size: 256mb
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4).status == 200 else 1)"
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      start_interval: 2s
+      retries: 3
+
+  frontend:
+    build: ./frontend
+    image: pertly-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "${PERTLY_PORT:-8080}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pertly-data:
